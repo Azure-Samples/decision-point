@@ -62,6 +62,15 @@ SITE_URL=https://example.com SITE_BASE=/decision-point PUBLIC_INDEX=true npm run
 
 `npm run build` produces a self-contained static site in `dist/`. Serve that folder from any static host, and set `SITE_URL` and `SITE_BASE` to match where it's served.
 
+### GitHub Pages
+
+[.github/workflows/deploy-pages.yml](.github/workflows/deploy-pages.yml) builds and deploys the site to GitHub Pages on every push to `main`. You can also run it from the **Actions** tab.
+
+1. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
+2. Push to `main`. The site is served at `https://<owner>.github.io/<repo>/`.
+
+The workflow reads `SITE_URL` and `SITE_BASE` from the Pages configuration, so it also works with a custom domain. To turn on analytics or indexing, add `PUBLIC_CLARITY_ID` or `PUBLIC_INDEX` as repository variables under **Settings → Secrets and variables → Actions → Variables**.
+
 ## Contributing
 
 This project welcomes contributions and suggestions. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
