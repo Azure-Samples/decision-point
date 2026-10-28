@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import Hero from '../components/Hero.astro';
+import HowItWorks from '../components/HowItWorks.astro';
+import Badges from '../components/Badges.astro';
+import BuildSteps from '../components/BuildSteps.astro';
+import Resources from '../components/Resources.astro';
+import AmdBand from '../components/AmdBand.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import PageScript from '../components/PageScript.astro';
+import Analytics from '../components/Analytics.astro';
+import { ANALYTICS_UI } from '../lib/inline';
+
+// One page for everyone, in the brief's order, less the sections cut since (the leaderboard, which lives in the game;
+// the Build panel; the closing card; the Build challenge). Players arriving from the
+// game (?from=game) land on Build steps, "You shipped it in the sim" (Base.astro), with the whole page around it.
+---
+
+<Base>
+  <SiteHeader />
+  <main id="main">
+    <Hero />
+    <HowItWorks />
+    <Badges />
+    <BuildSteps />
+    <Resources />
+    <AmdBand />
+  </main>
+  <SiteFooter />
+  <PageScript />
+  {ANALYTICS_UI && <Analytics />}
+</Base>

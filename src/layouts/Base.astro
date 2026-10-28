@@ -1,0 +1,46 @@
+---
+import '../styles/global.css';
+import { meta, assets } from '../content/copy';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Keeps the page out of search engines. */
+  noindex?: boolean;
+}
+
+// noindex until the final home is decided; build with PUBLIC_INDEX=true to allow indexing.
+const indexable = import.meta.env.PUBLIC_INDEX === 'true';
+const { title = meta.title, description = meta.description, noindex = !indexable } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {/* No favicon until the Decision Point logo arrives; this stops the /favicon.ico request. */}
+    <link rel="icon" href="data:," />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="theme-color" content="#05070b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {/* The game's end screen links here with ?from=game: before parsing, the URL gains #build-steps ("You shipped it in the
+        sim"), so the browser's own
+        fragment scroll lands there (under the header, via scroll-padding). An explicit #hash wins. No JS: the top. */}
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      if (!location.hash && new URLSearchParams(location.search).get('from') === 'game') history.replaceState(null, '', '#build-steps');
+    </script>
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main">{assets.skip}</a>
+    <slot />
+  </body>
+</html>

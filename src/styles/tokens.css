@@ -1,0 +1,217 @@
+/*
+ * Design tokens: the only place raw design values live.
+ * Components read roles (var(--color-ink)), never raw values.
+ * Dark only. Text pairs are measured on --color-bg (#060b17) in the trailing comments.
+ * The look is the Game edition: a deep navy ground, the logo's cyan as the highlight, and titles in
+ * the game's display face (Orbitron) in two tones, white then blue.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --color-bg: #060b17; /* deep navy, the game's ground */
+  --color-band: #0b0f15; /* alternating section bands (neutral, no tint) */
+  --color-surface: #10151e; /* cards: one clear step off both the ground and the band */
+  --color-surface-2: #161d29; /* raised cards, the $200 call-out, the live row, the You row */
+  --color-header: rgb(6 11 23 / 0.84);
+  --color-well: #050913; /* the near-black window inside a card (the hero art frame, the incident windows) */
+  --color-amd-bg: #0b0405; /* the AMD band's ground */
+
+  /* Lines. Decorative hairlines are the ink at low alpha; control borders stay solid at 3:1. */
+  --color-line: rgb(160 200 240 / 0.1);
+  --color-line-strong: rgb(246 247 249 / 0.17);
+  --color-hover-wash: rgb(255 255 255 / 0.07);
+  --color-control-border: #6b7380; /* 3.9:1 */
+
+  /* Text: one grey per job */
+  --color-ink: #f5f7fa; /* 19.5:1 */
+  --color-body: #c5ccd6; /* 12.4:1 */
+  --color-muted: #98a1ae; /* 7.7:1; every supporting line */
+  /* The setup half of every two-part title: pure white (the Game edition's two tones, white then blue) */
+  --color-title-quiet: #ffffff;
+  --logo-ink: #6b7689; /* the header logo's quiet grey (4.4:1) */
+  /* The payoff half of every two-part title: the logo's cyan running into Azure, clipped to the text, with a soft Azure
+     glow. Large text: about 9:1 at its darkest stop. */
+  --title-blue: linear-gradient(180deg, #5ee8ff 0%, #2fa8ff 100%);
+  --title-glow: drop-shadow(0 0 0.18em rgb(30 143 255 / 0.4));
+  --title-glow-hero: drop-shadow(0 0 0.16em rgb(30 143 255 / 0.45));
+  /* Numerals in the display face (step markers): the logo's ice blue on a faint cyan edge. 12:1 */
+  --color-numeral: #a9e1ff;
+  --numeral-edge: rgb(80 230 255 / 0.3);
+  /* Decorative, drawn in CSS from an aria-hidden span, so outside the contrast rules on purpose: 1.45:1 */
+  --color-num: #262d38;
+
+  /* The highlight: Azure's cyan, the logo's own (#50e6ff; brief: "Azure blues and teals"). Never an action colour. */
+  --color-hi: #50e6ff; /* ~13:1 */
+  --color-hi-ink: #0b0f16; /* text on the highlight */
+
+  /* The single action colour: Azure. White on it 5.4 / 6.9 / 9.0:1, so states only get darker. */
+  --color-accent: #0f6cbd;
+  --color-accent-hover: #0b5ba3;
+  --color-accent-press: #094a85;
+  --color-on-accent: #ffffff;
+  --color-link: #4ea4ff; /* 7.9:1 */
+  --color-focus: #4ea4ff;
+
+  /* AMD red: the AMD band only */
+  --color-amd: #ed1c24;
+  --color-amd-text: #ff8a8f; /* 9.2:1 */
+
+  /* Hero art (read once by the canvas script as --art-<name>) */
+  --art-row-front: #0f1a2b;
+  --art-row-top: #1a2b44;
+  --art-row-side: #0b1422;
+  --art-row-edge: rgb(124 192 255 / 0.32);
+  --art-cell: #20375a;
+  --art-cell-hot: #4a8fd8;
+  --art-point: #7cc0ff;
+  --art-link: rgb(124 192 255 / 0.08);
+  --art-path: var(--color-hi);
+  --art-node-fill: var(--color-bg);
+
+  /* Incident illustrations (2.5D slabs) */
+  --illo-top: #1a2b44;
+  --illo-front: #0f1a2b;
+  --illo-side: #0b1422;
+  --illo-edge: rgb(124 192 255 / 0.45);
+  --illo-edge-soft: rgb(124 192 255 / 0.25);
+  --illo-cell: #2b4a74;
+  --illo-wire: #7cc0ff;
+
+  /* Spotlights: one faint wash in the hero (teal) and the closing card (Azure). Never behind body text. */
+  --spot-azure: rgb(30 143 255 / 0.14);
+  /* The $200 card: a faint Azure wash from its upper right and the isometric stack beside the figure.
+     The lead and the figure keep their contrast over it (checked by axe). */
+  --budget-wash: rgb(15 108 189 / 0.24);
+  --budget-iso-line: rgb(78 164 255 / 0.3);
+  --budget-iso-fill: rgb(15 108 189 / 0.07);
+  /* The dot field (DotField.astro) draws its own dots: src/lib/field.ts */
+
+  /* Glow blobs (GlowBlobs.astro): soft cyan and Azure washes behind the hero, Leaderboard and Build.
+     Decoration only; text contrast is checked over them by axe. */
+  --blob-teal: rgb(80 230 255 / 0.16);
+  --blob-azure: rgb(30 143 255 / 0.26);
+  --blob-size: 34rem;
+  --blob-size-sm: 20rem;
+  --blob-blur: 60px;
+  --blob-opacity: 0.55;
+
+  /* Pending: one cue for every control that has no target yet (never opacity on the whole control); a solid edge
+     and the small clock, never dashed or dotted */
+  --pending-border: rgb(152 161 174 / 0.75); /* solid control edge, 3:1+ on the ground */
+  --pending-underline: rgb(152 161 174 / 0.45); /* the solid underline under a pending inline link */
+  --pending-mark: var(--color-muted);
+  --pending-inset: rgb(255 255 255 / 0.28); /* the inner ring on a pending primary */
+
+  /* Category hues: every one >= 5:1 on --color-bg, --color-band and --color-surface; none reads as the Azure action
+     fill. The Resources column chips and the sample posts' avatars. */
+  --hue-blue: #73b5f2;
+  --hue-violet: #a688ec;
+  --hue-amber: #f2ad48;
+
+  /* Rails: the indexed path drawn between nodes (pipelines, the Build steps rail) */
+  --rail: rgb(201 211 223 / 0.5);
+  --rail-width: 2px;
+
+  /* The Game edition's light: the page's Azure glow from the top, the bands' cyan edge streaks, and glass cards */
+  --glow-page: rgb(14 70 140 / 0.45);
+  --streak: rgb(80 230 255 / 0.35);
+  --streak-soft: rgb(80 230 255 / 0.2);
+  --color-glass: rgb(10 19 36 / 0.74);
+  --shadow-glass: inset 0 1px 0 rgb(180 230 255 / 0.07), 0 30px 60px -30px rgb(0 0 0 / 0.8);
+
+  /* Depth */
+  --edge-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --shadow-cta: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 12px 28px -14px rgb(0 0 0 / 0.9);
+  --shadow-card: 0 30px 60px -30px rgb(0 0 0 / 0.8);
+
+  /* Typography */
+  --font-sans: 'Geist Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Cascadia Code', Consolas, 'SFMono-Regular', monospace;
+  /* The game's display face (SIL OFL): titles, the nav, numerals. Always 700, uppercase, never synthesised. */
+  --font-display: 'Orbitron Variable', var(--font-sans);
+  --text-xs: 0.8125rem;
+  --text-sm: 0.9375rem;
+  --text-base: 1.125rem; /* 18px */
+  --text-lg: 1.3125rem; /* leads and intros */
+  --text-card-title: 1.5rem;
+  /* One section-heading size: every section title and the closing card's */
+  --text-h2: clamp(1.75rem, 1.05rem + 2.6vw, 3rem);
+  --text-h1: clamp(2.75rem, 0.95rem + 4.5vw, 5.5rem);
+  --text-h2-utility: var(--text-h2); /* the utility tier (Resources) takes the one size */
+  --leading-title: 1.12;
+  --tracking-caps: 0.01em; /* display titles */
+  --leading-normal: 1.65;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-title: 650;
+
+  /* Spacing (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
+  --space-18: 4.5rem;
+  --space-24: 6rem;
+  --space-28: 7rem;
+  --space-32: 8rem;
+
+  /* Layout */
+  --container: 76rem;
+  --measure: 44rem;
+  --measure-wide: 60rem;
+  --gutter: 2rem;
+  --header-height: 4.5rem;
+  --section-pad: var(--space-32);
+
+  /* Shape: Microsoft's soft-square language */
+  --radius-sm: 6px; /* buttons, tags, controls */
+  --radius-md: 10px; /* cards and panels */
+  --focus-width: 3px;
+  --target-min: 3.25rem; /* 52px */
+  --target-sm: 2.5rem; /* 40px visible, 44px hit area */
+
+  /* Motion */
+  --dur-press: 120ms;
+  --dur-state: 180ms;
+  --dur-emph: 300ms;
+  --dur-enter: 500ms;
+  --dur-flip: 650ms;
+  --stagger: 70ms;
+  --period: 24s; /* ambient loops use T x {1, 1.2, 1.3, 1.4, 5/3, 2} divided down */
+  --ease-ambient: cubic-bezier(0.37, 0, 0.63, 1);
+  --move-enter: 16px;
+  --move-nudge: 3px;
+  --ease-state: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@media (max-width: 40rem) {
+  :root {
+    --gutter: 1.25rem;
+    --section-pad: var(--space-24);
+    --text-base: 1.0625rem;
+    --text-lg: 1.1875rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-press: 0ms;
+    --dur-state: 0ms;
+    --dur-emph: 0ms;
+    --dur-enter: 0ms;
+    --dur-flip: 0ms;
+    --stagger: 0ms;
+    --period: 0s;
+  }
+}

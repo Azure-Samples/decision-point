@@ -1,0 +1,292 @@
+---
+import GlowBlobs from './GlowBlobs.astro';
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+import DotField from './DotField.astro';
+import { hero } from '../content/copy';
+import { links } from '../content/links';
+import { withoutGlyph } from '../lib/inline';
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <DotField light={['haze', 'shafts', 'floor']} clear="28% 50%" twinkle={[7, 10]} />
+  <GlowBlobs blobs={[{ hue: 'teal', x: '55%', y: '-10%' }, { hue: 'azure', x: '-12%', y: '40%' }]} />
+  <div class="wrap grid">
+    <div class="copy">
+      <h1 class="hero-title" id="hero-title"><span class="t-quiet">{hero.titleLine1}</span><span class="line2">{hero.titleLine2}</span></h1>
+      <p class="lead">{hero.subhead}</p>
+    </div>
+    <div class="act">
+      <div class="ctas">
+        <Button href={links.game} variant="primary" cta="launch-hero" icon="player-play">{hero.primary}</Button>
+        <Button href="#build-steps" cta="build-hero" icon="terminal-2">{withoutGlyph(hero.build)}</Button>
+      </div>
+      <ul class="facts">
+        {hero.facts.map((f) => <li><Icon name="check" size={18} />{f}</li>)}
+      </ul>
+    </div>
+    {/* The slot for the client's preview animation. Until it arrives, the brief's motif is drawn live. */}
+    <figure class="art">
+      <span class="art-slot">{hero.artSlot} <small>{hero.artSlotNote}</small></span>
+      <canvas id="hero-art" role="img" aria-label={hero.artLabel}></canvas>
+      <button type="button" class="art-pause motion-toggle" id="hero-art-pause" aria-label={hero.pause} aria-pressed="false" data-play={hero.play} data-pause={hero.pause} hidden>
+        <Icon name="player-pause" size={16} class="when-playing" /><Icon name="player-play" size={16} class="when-paused" />
+      </button>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    min-height: min(44rem, calc(100svh - var(--header-height)));
+    display: grid;
+    align-items: center;
+    overflow: clip;
+  }
+
+  .hero > .wrap {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* The art stays inside the container and takes every pixel the copy column doesn't need */
+  .grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 33.5rem) minmax(0, 1fr);
+    grid-template-areas:
+      'copy art'
+      'act art';
+    align-items: center;
+    /* The art takes most of the row; the gap scales down with the viewport so it stays large on smaller laptops */
+    gap: var(--space-8) clamp(var(--space-12), 5vw, var(--space-18));
+    padding-block: var(--space-18);
+  }
+
+  .copy {
+    grid-area: copy;
+  }
+
+  .art {
+    grid-area: art;
+  }
+
+  .act {
+    grid-area: act;
+    align-self: start;
+  }
+
+  .copy {
+    align-self: end;
+  }
+
+  /* Two lines, one sentence each, from tablet up. The size follows the copy column (a container), so the longer
+     sentence always fits its line: 100% of the column over its width in em. */
+  .copy {
+    container-type: inline-size;
+  }
+
+  /* The display face in two tones, like every title: white, then the blue (--line-em: Orbitron's longer line, in em) */
+  .hero-title {
+    --line-em: 11;
+    font-family: var(--font-display);
+    font-size: min(5.5rem, calc(100cqi / var(--line-em)));
+    font-weight: 700;
+    font-synthesis: none;
+    line-height: 1.08;
+    text-transform: uppercase;
+  }
+
+  .hero-title > span {
+    white-space: nowrap;
+    color: var(--color-title-quiet);
+    filter: var(--title-glow-hero);
+  }
+
+  .hero-title > .line2 {
+    background: var(--title-blue);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-title .line2 {
+    display: block;
+  }
+
+  .lead {
+    max-width: 36rem;
+    margin-top: var(--space-6);
+    font-size: 1.25rem; /* a hair under --text-lg, so the lead sets in four lines at most */
+    line-height: 1.5;
+    color: var(--color-body);
+  }
+
+  /* The two actions always share one row; below 82rem they split it evenly and their labels may wrap */
+  .ctas {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 82rem) {
+    .ctas :global(.btn) {
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 82rem) {
+    .ctas > :global(*) {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+
+    .ctas :global(.btn) {
+      width: 100%;
+      padding-inline: var(--space-3);
+      line-height: 1.25;
+    }
+  }
+
+  /* The trust strip: one line from tablet up (it may wrap on phones only) */
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    margin-top: var(--space-5);
+    padding: 0;
+    list-style: none;
+    font-size: 0.9375rem;
+    color: var(--color-muted);
+  }
+
+  .facts li {
+    flex: none;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .facts :global(.icon) {
+    color: var(--color-hi);
+  }
+
+  /* The client-asset slot: the brief's 16:9 in a near-black well (the same well as the incident windows), framed and
+     contained; the label is a quiet corner tab */
+  .art {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    margin: 0;
+    overflow: hidden;
+    background: var(--color-well);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--edge-highlight), var(--shadow-card);
+  }
+
+  .art canvas {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .art-slot {
+    position: absolute;
+    left: var(--space-3);
+    top: var(--space-3);
+    z-index: 1;
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg);
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-muted);
+    font: var(--weight-medium) var(--text-xs) / 1.2 var(--font-mono);
+  }
+
+  .art-slot small {
+    margin-left: 0.35rem;
+    font-size: inherit;
+    font-weight: var(--weight-regular);
+  }
+
+  .art-pause {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+  }
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'copy'
+        'act'
+        'art';
+      row-gap: var(--space-8);
+      padding-block: var(--space-16) var(--space-8);
+    }
+
+    /* Stacked, a static spotlight sits under the art, and the dot field keeps to the lower half, clear of the copy */
+    .hero {
+      background: radial-gradient(ellipse 80% 40% at 60% 78%, var(--spot-azure), transparent 72%);
+    }
+
+    .hero > :global(.dx) {
+      -webkit-mask-image: linear-gradient(transparent 0 50%, #000 75%);
+      mask-image: linear-gradient(transparent 0 50%, #000 75%);
+    }
+
+    .hero-title {
+      font-size: min(5.5rem, calc(100cqi / var(--line-em)), var(--text-h1));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .hero {
+      min-height: 0;
+    }
+
+    .hero-title > span {
+      white-space: normal;
+    }
+
+    .ctas > :global(*) {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Phones: the slot label sits on its own strip above the 16:9 canvas instead of over the motif */
+    .art {
+      aspect-ratio: auto;
+    }
+
+    .art-slot {
+      position: static;
+      display: block;
+      margin: var(--space-3) var(--space-3) 0;
+    }
+
+    .art canvas {
+      aspect-ratio: 16 / 9;
+      height: auto;
+    }
+  }
+
+  /* 320px: the labels and the trust strip may wrap */
+  @media (max-width: 22.5rem) {
+    .ctas :global(.btn) {
+      font-size: var(--text-xs);
+      padding-inline: var(--space-2);
+    }
+
+    .facts li {
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: normal;
+    }
+  }
+</style>

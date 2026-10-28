@@ -1,0 +1,235 @@
+---
+import Icon from './Icon.astro';
+import DotField from './DotField.astro';
+import { resources, assets } from '../content/copy';
+import { links, type LinkKey } from '../content/links';
+import { hrefFor, isResolved, looksLive, titleParts } from '../lib/inline';
+import type { IconName } from '../lib/icons';
+
+// No card inside a card: unframed columns, each headed by its hued chip. Link tiles lift, underline their title and
+// lean their arrow up and out; a tile without a URL says so and stays still.
+const colIcons: IconName[] = ['book', 'tools', 'users'];
+const colHues = ['--hue-blue', '--hue-amber', '--hue-violet'];
+const [setup, payoff] = titleParts(resources.title);
+---
+
+<section class="section centred utility-pad band" id="resources" data-reveal aria-labelledby="resources-title">
+  <DotField light={['topglow']} />
+  <div class="wrap">
+    <h2 class="title utility rv-h" id="resources-title">
+      <span class="t-quiet">{setup}</span> {payoff}
+    </h2>
+    <div class="cols">
+      {
+        resources.columns.map((col, c) => (
+          <div class="col rv" style={`--chip-hue: var(${colHues[c]})`}>
+            <h3><span class="icon-chip hued" aria-hidden="true"><Icon name={colIcons[c]} size={20} /></span>{col.heading}</h3>
+            <ul>
+              {col.items.map((item) => {
+                const href = links[item.link as LinkKey];
+                return (
+                  <li>
+                    {/* PENDING links look live for the preview (data-pending cancels the click); restore inactive styling before launch */}
+                    {looksLive(href) ? (
+                      <a class="tile" href={hrefFor(href)} target={isResolved(href) ? '_blank' : undefined} rel={isResolved(href) ? 'noopener' : undefined} data-cta={`resource-${item.link}`} data-pending={isResolved(href) ? undefined : ''}>
+                        <span class="t">
+                          {item.label}
+                          {isResolved(href) && <span class="sr-only"> {assets.newTab}</span>}
+                        </span>
+                        <Icon name="arrow-up-right" size={20} class="go" />
+                      </a>
+                    ) : (
+                      <div class="tile soon">
+                        <span>
+                          <span class="t">{item.label}</span>
+                          <span class="note"><Icon name="clock" size={14} />{resources.pending}</span>
+                        </span>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  #resources {
+    overflow: clip;
+  }
+
+  /* "Developer Resources" reads on one line where it fits */
+  #resources-title {
+    max-width: none;
+  }
+
+  #resources-title .t-quiet {
+    display: inline;
+  }
+
+  @media (min-width: 64.01rem) {
+    #resources-title {
+      white-space: nowrap;
+    }
+  }
+
+
+  /* Three unframed columns on one grid, split by vertical hairlines; rows are shared across them (subgrid), so every
+     tile lines up */
+  .cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: auto repeat(3, 1fr);
+    gap: 0;
+    margin-top: var(--space-14);
+    text-align: left;
+  }
+
+  .col {
+    display: grid;
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+    row-gap: var(--space-3);
+    padding-inline: var(--space-6);
+  }
+
+  .col:first-child {
+    padding-left: 0;
+  }
+
+  .col:last-child {
+    padding-right: 0;
+  }
+
+  .col + .col {
+    border-left: 1px solid var(--color-line);
+  }
+
+  .col ul {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .col li {
+    display: grid;
+  }
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-2);
+    font-size: 1.0625rem;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+
+  /* Every tile is the raised Hub tile; only a tile with a link moves */
+  .tile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    height: 100%;
+    min-height: 4.5rem;
+    padding: 1rem var(--space-5);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-2);
+    box-shadow: inset 0 0 0 1px var(--color-line-strong);
+    color: var(--color-ink);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-state) var(--ease-state),
+      translate var(--dur-state) var(--ease-out);
+  }
+
+  .t {
+    display: block;
+    font-weight: var(--weight-semibold);
+    line-height: 1.3;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    text-decoration-color: transparent;
+    transition: text-decoration-color var(--dur-state) var(--ease-state);
+  }
+
+  .note {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+
+  /* The arrows stay grey; only the column-head chips carry the hues */
+  .tile :global(.go) {
+    color: var(--color-muted);
+    transition: translate var(--dur-state) var(--ease-out);
+  }
+
+  a.tile:is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface-2));
+  }
+
+  a.tile:is(:hover, :focus-visible) .t {
+    text-decoration-color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a.tile:is(:hover, :focus-visible) {
+      translate: 0 calc(var(--move-nudge) * -1);
+    }
+
+    a.tile:is(:hover, :focus-visible) :global(.go) {
+      translate: 2px -2px;
+    }
+  }
+
+  .soon {
+    color: var(--color-body);
+  }
+
+  .soon .t {
+    font-weight: var(--weight-medium);
+  }
+
+  @media (max-width: 64rem) {
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      row-gap: var(--space-10);
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+
+    .col,
+    .col ul {
+      grid-row: auto;
+      grid-template-rows: none;
+    }
+
+    .col {
+      padding-inline: 0;
+    }
+
+    /* Stacked, the hairline between columns turns horizontal */
+    .col + .col {
+      border-left: 0;
+      border-top: 1px solid var(--color-line);
+      padding-top: var(--space-10);
+    }
+  }
+</style>

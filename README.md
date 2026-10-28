@@ -1,57 +1,75 @@
-# Project Name
+# Decision Point landing page
 
-(short, 1-3 sentenced, description of the project)
+The landing page for **Decision Point**, a browser game where you're the lead engineer shipping an AI agent on Azure HorizonDB, powered by Azure and AMD. Players visit it before the game, and the game's end screen sends them back to it to build the agent for real.
 
-## Features
+- See how the game works, the badges you can earn, and the steps to build the agent on Azure HorizonDB.
+- Start the game, or go straight to the build steps and the Azure free account.
+- Find developer resources for Azure HorizonDB and Azure Database for PostgreSQL.
 
-This project framework provides the following features:
+The page is a static site built with [Astro](https://astro.build) and TypeScript.
 
-* Feature 1
-* Feature 2
-* ...
+## Getting started
 
-## Getting Started
+You need **Node.js 22.12 or later**.
 
-### Prerequisites
+```bash
+npm ci
+npm run dev   # http://localhost:4321
+```
 
-(ideally very short, if any)
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Starts the local dev server at `http://localhost:4321` |
+| `npm run build` | Builds the static site into `dist/` |
+| `npm run preview` | Serves the built `dist/` locally |
+| `npm run check` | Runs Astro's type and template checks |
 
-- OS
-- Library version
-- ...
+## Where to change things
 
-### Installation
+| To change… | Edit |
+| --- | --- |
+| The words on the page | [src/content/copy.ts](src/content/copy.ts) |
+| Outbound links (the game, Azure, docs, resources) | [src/content/links.ts](src/content/links.ts) |
+| Colours, type sizes, spacing and motion values | [src/styles/tokens.css](src/styles/tokens.css) |
+| Shared text styles | [src/styles/global.css](src/styles/global.css) |
+| A section of the page | [src/components/](src/components/), one component per section, in the order set by [src/pages/index.astro](src/pages/index.astro) |
+| Images (badges, logos) | [src/assets/](src/assets/) |
+| The game's sounds | [public/sounds/](public/sounds/) |
+| Analytics names for buttons | [src/lib/cta.ts](src/lib/cta.ts) |
 
-(ideally very short)
+A link whose value in `links.ts` is still a `{{placeholder}}` never renders as a real link. `PREVIEW_PENDING_LIVE` in [src/lib/inline.ts](src/lib/inline.ts) decides how those links look: while it's `true`, they look like working links and do nothing when selected; set it to `false` to show them as pending.
 
-- npm install [package name]
-- mvn install
-- ...
+Players arriving from the game's end screen with `?from=game` land on the build steps (`#build-steps`).
 
-### Quickstart
-(Add steps to get up and running quickly)
+## Build settings
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+Set these when you build. None are needed for local work.
 
+| Variable | What it does |
+| --- | --- |
+| `SITE_URL` | The site's host, used for the canonical URL. Defaults to `http://localhost:4321` |
+| `SITE_BASE` | The path the site is served from, if not the root (for example `/decision-point`). Defaults to `/` |
+| `PUBLIC_CLARITY_ID` | A Microsoft Clarity project ID. When set, the page shows a consent banner and loads Clarity with consent denied until the visitor accepts. When unset, no analytics code is included |
+| `PUBLIC_INDEX` | Set to `true` to allow search engines to index the site. By default every page is `noindex` |
 
-## Demo
+For example:
 
-A demo app is included to show how to use the project.
+```bash
+SITE_URL=https://example.com SITE_BASE=/decision-point PUBLIC_INDEX=true npm run build
+```
 
-To run the demo, follow these steps:
+## Deployment
 
-(Add steps to start up the demo)
+`npm run build` produces a self-contained static site in `dist/`. Serve that folder from any static host, and set `SITE_URL` and `SITE_BASE` to match where it's served.
 
-1.
-2.
-3.
+## Contributing
 
-## Resources
+This project welcomes contributions and suggestions. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
-(Any additional resources or related projects)
+## Trademarks
 
-- Link to supporting information
-- Link to similar sample
-- ...
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
+
+## License
+
+[MIT](LICENSE.md)

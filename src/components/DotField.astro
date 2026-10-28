@@ -1,0 +1,161 @@
+---
+// The Game edition's ground behind a section: the game's light (any of a slate haze, soft light shafts, a teal floor
+// glow, an Azure spotlight, or a glow along the section's top seam), then a dot grid with each dot at its own opacity
+// (src/lib/field.ts), thinned behind the copy, and a few dots that slowly twinkle. With a mouse and motion allowed, a
+// lens of brighter dots follows the pointer (PageScript.astro).
+// Decorative: aria-hidden, pointer-events none, under the content. The host section sets isolation.
+import { FIELD_TILE, twinkles } from '../lib/field';
+import { withBase } from '../lib/inline';
+
+type Light = 'haze' | 'shafts' | 'floor' | 'spot' | 'topglow';
+
+interface Props {
+  /** The light under the dots, back to front */
+  light?: Light[];
+  /** Where the dots thin out behind the copy, "x% y%" of the host; without it there are no dots */
+  clear?: string;
+  /** Twinkling dots: [seed, count] */
+  twinkle?: [number, number];
+}
+
+const { light = [], clear, twinkle } = Astro.props;
+const tiles = `--dot-tile: url(${withBase('field/dots.svg')}); --dot-tile-lit: url(${withBase('field/dots-lit.svg')}); --tile: ${FIELD_TILE}px`;
+---
+
+<div class="dx" aria-hidden="true" style={clear ? `${tiles}; --clear: ${clear}` : undefined}>
+  {light.map((l) => <i class={l} />)}
+  {
+    clear && (
+      <>
+        <i class="dots" />
+        <i class="dots-lit" />
+      </>
+    )
+  }
+  {twinkle && twinkles(...twinkle).map((t) => <i class="tw" style={`left: ${t.left}px; top: ${t.top}px; --d: ${t.dur}s; --o: ${t.offset}s`} />)}
+</div>
+
+<style>
+  .dx {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .dx > * {
+    position: absolute;
+  }
+
+  /* The dots fade out at the top and bottom, and thin to a fifth around --clear, where the copy sits */
+  .dots {
+    inset: 0;
+    opacity: 0.7;
+    background: var(--dot-tile) 0 0 / var(--tile) var(--tile);
+    -webkit-mask-image:
+      linear-gradient(transparent, #000 14%, #000 86%, transparent),
+      radial-gradient(ellipse 50% 70% at var(--clear), rgb(0 0 0 / 0.18), #000 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(transparent, #000 14%, #000 86%, transparent),
+      radial-gradient(ellipse 50% 70% at var(--clear), rgb(0 0 0 / 0.18), #000 100%);
+    mask-composite: intersect;
+  }
+
+  /* The lens: the brighter copy of the same dots and a faint Azure glow, shown in a circle around the pointer */
+  .dots-lit {
+    inset: 0;
+    opacity: 0;
+    transition: opacity 600ms ease-out;
+    background:
+      var(--dot-tile-lit) 0 0 / var(--tile) var(--tile),
+      radial-gradient(circle 16rem at var(--gx, 50%) var(--gy, 50%), rgb(30 143 255 / 0.1), transparent 70%);
+    -webkit-mask-image: radial-gradient(circle 15rem at var(--gx, 50%) var(--gy, 50%), #000, rgb(0 0 0 / 0.35) 45%, transparent 100%);
+    mask-image: radial-gradient(circle 15rem at var(--gx, 50%) var(--gy, 50%), #000, rgb(0 0 0 / 0.35) 45%, transparent 100%);
+  }
+
+  .dots-lit:global(.on) {
+    opacity: 0.7;
+  }
+
+  /* Compositor-only (opacity) and decorative; still under reduced motion */
+  .tw {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    translate: -50% -50%;
+    background: #c8eeff;
+    opacity: 0.08;
+    box-shadow: 0 0 6px 1px rgb(80 230 255 / 0.55);
+    animation: dx-tw var(--d) ease-in-out var(--o) infinite;
+  }
+
+  @keyframes dx-tw {
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  /* The game's own light: a slate-blue haze on the right, soft vertical shafts, a teal floor glow */
+  .haze {
+    inset: 0;
+    background: radial-gradient(48% 70% at 70% 28%, rgb(120 150 195 / 0.16), transparent 70%);
+  }
+
+  .shafts {
+    top: 0;
+    bottom: 0;
+    left: 52%;
+    width: 40%;
+    opacity: 0.8;
+    filter: blur(8px);
+    background: linear-gradient(
+      90deg,
+      transparent 12%,
+      rgb(130 170 255 / 0.1) 14%,
+      transparent 18%,
+      transparent 46%,
+      rgb(140 225 230 / 0.13) 49%,
+      transparent 54%,
+      transparent 78%,
+      rgb(150 190 255 / 0.08) 80%,
+      transparent 83%
+    );
+    -webkit-mask-image: linear-gradient(transparent, #000 20%, #000 70%, transparent);
+    mask-image: linear-gradient(transparent, #000 20%, #000 70%, transparent);
+  }
+
+  .floor {
+    left: 25%;
+    right: -10%;
+    bottom: -3rem;
+    height: 16rem;
+    background: radial-gradient(40% 55% at 62% 100%, rgb(95 212 200 / 0.26), transparent 70%);
+  }
+
+  .spot {
+    inset: 0;
+    background: radial-gradient(38% 60% at 72% 50%, rgb(30 143 255 / 0.17), transparent 70%);
+  }
+
+  /* A very soft glow along the seam above the section */
+  .topglow {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 20rem;
+    background: radial-gradient(45% 100% at 50% 0%, rgb(30 143 255 / 0.16), rgb(80 230 255 / 0.04) 45%, transparent 75%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tw {
+      animation: none;
+      opacity: 0.25;
+    }
+
+    .dots-lit {
+      display: none;
+    }
+  }
+</style>

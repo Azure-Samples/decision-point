@@ -1,0 +1,456 @@
+---
+// The page script (one of the page's few scripts): motion flag, scroll reveal, flip cards, the incident loops' gate,
+// the pending controls' click guard, the dot field's lens, the hero art, the
+// header's section highlight and the game's sounds. (The header's scroll surface lives in SiteHeader.astro's script.)
+// Without JS nothing is hidden: the reveal is only armed here, and the flip cards fall back to both faces' text.
+---
+
+<script>
+  const root = document.documentElement;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const motionOK = () => !reduce.matches;
+  const syncMotion = () => root.classList.toggle('motion', motionOK());
+  syncMotion();
+
+  /* ---------- Scroll reveal: lists and headers. Nothing on screen at load, without JS, or under reduced motion is hidden. ---------- */
+  let io: IntersectionObserver | null = null;
+  const reveal = (g: Element) => {
+    g.classList.add('rv-in');
+    io?.unobserve(g);
+  };
+  const armReveal = () => {
+    io?.disconnect();
+    io = null;
+    const groups = [...document.querySelectorAll<HTMLElement>('[data-reveal]')];
+    groups.forEach((g) => g.classList.add('rv-in'));
+    if (!motionOK()) return;
+    io = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && reveal(e.target)), { rootMargin: '0px 0px -10% 0px' });
+    groups.forEach((g) => {
+      if (g.offsetParent === null) return;
+      [...g.querySelectorAll<HTMLElement>('.rv-h, .rv')]
+        .filter((u) => u.offsetParent !== null)
+        .forEach((u, i) => u.style.setProperty('--i', String(Math.min(i, 9))));
+      if (g.getBoundingClientRect().top < window.innerHeight) return;
+      g.classList.remove('rv-in');
+      io!.observe(g);
+    });
+  };
+  armReveal();
+  document.addEventListener('click', (e) => {
+    const a = (e.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+    const id = a?.getAttribute('href');
+    const t = id && id.length > 1 ? document.querySelector(id) : null;
+    if (t?.matches('[data-reveal]')) reveal(t);
+  });
+
+  /* ---------- Flip cards: focus follows the face that's showing; the hidden face is inert ---------- */
+  document.querySelectorAll<HTMLButtonElement>('[data-flip]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const card = b.closest('.flip');
+      if (!card) return;
+      const flipped = card.classList.toggle('flipped');
+      const [front, back] = card.querySelectorAll<HTMLElement>('.face');
+      front.inert = flipped;
+      back.inert = !flipped;
+      front.querySelector('[data-flip]')?.setAttribute('aria-expanded', String(flipped));
+      (flipped ? back.querySelector<HTMLElement>('.lesson') : front.querySelector<HTMLElement>('[data-flip]'))?.focus({ preventScroll: true });
+    }),
+  );
+
+  /* ---------- Incident loops: CSS animations that run only while the set is in view, the tab is visible and motion is
+     allowed. Under reduced motion html.motion is off, so no animation is ever created. No pause control: an accepted
+     WCAG 2.2.2 exception. ---------- */
+  const illos = document.getElementById('illos');
+  if (illos) {
+    let illoSeen = false;
+    const syncIllos = () => illos.classList.toggle('illo-live', motionOK() && illoSeen && !document.hidden);
+    new IntersectionObserver((es) => es.forEach((e) => { illoSeen = e.isIntersecting; syncIllos(); })).observe(illos);
+    document.addEventListener('visibilitychange', syncIllos);
+    reduce.addEventListener('change', syncIllos);
+  }
+
+  /* ---------- Pending controls (preview only; restore inactive styling before launch). Every control whose URL is
+     still a {{placeholder}} renders live (href="#", data-pending), with its full hover, focus and press; clicking it
+     does nothing. ---------- */
+  document.addEventListener('click', (e) => {
+    if ((e.target as Element).closest('a[data-pending]')) e.preventDefault();
+  });
+
+  /* ---------- The dot field's lens (DotField.astro): with a mouse and motion allowed, a circle of brighter dots eases
+     toward the pointer and fades out when it leaves. Two CSS variables per frame, written only while it moves. ---------- */
+  const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
+  document.querySelectorAll<HTMLElement>('.dx > .dots-lit').forEach((lit) => {
+    const host = lit.parentElement!.parentElement!;
+    let x = 0, y = 0, tx = 0, ty = 0, raf = 0;
+    const step = () => {
+      x += (tx - x) * 0.12;
+      y += (ty - y) * 0.12;
+      lit.style.setProperty('--gx', `${x.toFixed(1)}px`);
+      lit.style.setProperty('--gy', `${y.toFixed(1)}px`);
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.5 ? requestAnimationFrame(step) : 0;
+    };
+    host.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse' || !fine.matches || !motionOK()) return;
+      const r = host.getBoundingClientRect();
+      tx = e.clientX - r.left;
+      ty = e.clientY - r.top;
+      if (!lit.classList.contains('on')) {
+        x = tx;
+        y = ty;
+        lit.classList.add('on');
+      }
+      raf ||= requestAnimationFrame(step);
+    }, { passive: true });
+    host.addEventListener('pointerleave', () => lit.classList.remove('on'));
+  });
+
+  /* ---------- The section in view: the header link whose section crosses a line 35% down the viewport gets
+     aria-current; between linked sections none does. Rects read once per frame while scrolling. Not motion, so it runs
+     under reduced motion too. ---------- */
+  const spy = [...document.querySelectorAll<HTMLAnchorElement>('.site-header .nav a[href^="#"]')]
+    .map((a) => ({ a, s: document.querySelector<HTMLElement>(a.getAttribute('href')!) }))
+    .filter((x): x is { a: HTMLAnchorElement; s: HTMLElement } => !!x.s);
+  let spyQueued = false;
+  const spyUpdate = () => {
+    spyQueued = false;
+    const line = window.innerHeight * 0.35;
+    spy.forEach(({ a, s }) => {
+      const r = s.getBoundingClientRect();
+      const on = r.top <= line && r.bottom > line;
+      if (on) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
+  };
+  if (spy.length) {
+    const queue = () => {
+      if (spyQueued) return;
+      spyQueued = true;
+      requestAnimationFrame(spyUpdate);
+    };
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue, { passive: true });
+    spyUpdate();
+  }
+
+  /* ---------- The game's sounds. The game's own files (public/sounds/), played the
+     way the game plays them: its ambient loop, a whoosh on hovering a link or button, and clicks matched to the game's
+     (starting the game, choosing a section, flipping an incident, everything else). Nothing loads or plays before the
+     first click or key press (browsers allow no sound before one); the header's switch mutes it all and is remembered on
+     this browser; a hidden tab is silent. ---------- */
+  const sndBtn = document.querySelector<HTMLButtonElement>('[data-sound]');
+  if (sndBtn && 'AudioContext' in window) {
+    const dir = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/sounds/`;
+    const SFX = {
+      ambient: 'azure_ambient.ogg',
+      click: 'ui_azure_main_click.mp3',
+      startClick: 'ui_azure_start_click.mp3',
+      optionClick: 'ui_azure_option_click.mp3',
+      clickIncident: 'ui_click_incident.mp3',
+      hover: 'ui_azure_whoosh_icon_move.mp3',
+      buttonHover: 'ui_azure_whoosh_icon_move_02.mp3',
+    };
+    type Sfx = keyof typeof SFX | 'clickIncidentRev';
+    const MUTE_KEY = 'dp_sound_muted';
+    const bufs: Partial<Record<Sfx, AudioBuffer>> = {};
+    let ctx: AudioContext | null = null, master: GainNode | null = null, ambient: AudioBufferSourceNode | null = null;
+    let loading: Promise<void> | null = null, lastHover = 0, muted = false;
+    try {
+      muted = localStorage.getItem(MUTE_KEY) === 'true';
+    } catch {
+      /* storage blocked: sound starts on */
+    }
+
+    const load = () =>
+      (loading ??= (async () => {
+        const ac = (ctx = new AudioContext());
+        master = ac.createGain();
+        master.gain.value = muted ? 0 : 1;
+        master.connect(ac.destination);
+        await Promise.all(
+          Object.entries(SFX).map(async ([k, file]) => {
+            try {
+              bufs[k as Sfx] = await ac.decodeAudioData(await (await fetch(dir + file)).arrayBuffer());
+            } catch {
+              /* a file that fails to load stays silent */
+            }
+          }),
+        );
+        // Closing a flipped card plays the incident click backwards
+        const fwd = bufs.clickIncident;
+        if (fwd) {
+          const rev = ac.createBuffer(fwd.numberOfChannels, fwd.length, fwd.sampleRate);
+          for (let c = 0; c < fwd.numberOfChannels; c++) rev.getChannelData(c).set(fwd.getChannelData(c).slice().reverse());
+          bufs.clickIncidentRev = rev;
+        }
+      })());
+
+    const play = (name: Sfx, vol = 1, { rate = 1, offset = 0, dur = 0 } = {}) => {
+      const buf = bufs[name];
+      if (!ctx || !master || muted || !buf) return;
+      const src = ctx.createBufferSource(), g = ctx.createGain(), t = ctx.currentTime;
+      src.buffer = buf;
+      src.playbackRate.value = rate;
+      g.gain.value = vol;
+      src.connect(g).connect(master);
+      if (dur) {
+        g.gain.setValueAtTime(vol, t + Math.max(0, dur - 0.04));
+        g.gain.linearRampToValueAtTime(0, t + dur);
+        src.start(t, offset, dur * rate);
+      } else src.start(t, offset);
+    };
+
+    // The flip sounds fit the flip itself, timed from the page's own tokens: opening (--dur-flip) plays the whole click
+    // sped up to fit, closing (--dur-emph) the reversed click from past its quiet lead-in. Under reduced motion the flip
+    // is instant (the tokens are 0), so it gets the short option click instead.
+    const seconds = (v: string) => {
+      const raw = getComputedStyle(root).getPropertyValue(v).trim(), n = parseFloat(raw) || 0;
+      return raw.endsWith('ms') ? n / 1000 : n;
+    };
+    const playFlip = (closing: boolean) => {
+      const fwd = bufs.clickIncident, dur = seconds(closing ? '--dur-emph' : '--dur-flip');
+      if (!fwd || dur <= 0) return play('optionClick', 0.6);
+      if (!closing) return play('clickIncident', 1, { rate: fwd.duration / dur, dur });
+      const rate = 2.2;
+      play('clickIncidentRev', 1, { rate, offset: Math.max(0, fwd.duration - dur * rate), dur });
+    };
+
+    // The ambient loop fades in over 2s at a quarter volume, once
+    const wake = async () => {
+      await load();
+      if (!ctx || !master) return;
+      if (ctx.state === 'suspended') await ctx.resume();
+      if (ambient || !bufs.ambient) return;
+      const src = ctx.createBufferSource(), g = ctx.createGain();
+      src.buffer = bufs.ambient;
+      src.loop = true;
+      g.gain.setValueAtTime(0, ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 2);
+      src.connect(g).connect(master);
+      src.start();
+      ambient = src;
+    };
+
+    const setMuted = (m: boolean) => {
+      muted = m;
+      try {
+        localStorage.setItem(MUTE_KEY, String(m));
+      } catch {
+        /* storage blocked: the choice lasts for this page view */
+      }
+      if (ctx && master) master.gain.setTargetAtTime(m ? 0 : 1, ctx.currentTime, 0.05);
+      sndBtn.setAttribute('aria-pressed', String(m));
+    };
+
+    sndBtn.hidden = false;
+    sndBtn.setAttribute('aria-pressed', String(muted));
+    sndBtn.addEventListener('click', async () => {
+      setMuted(!muted);
+      await wake();
+      if (!muted) play('optionClick');
+    });
+    document.addEventListener('pointerdown', wake, { once: true, capture: true });
+    document.addEventListener('keydown', wake, { once: true, capture: true });
+    // Hovers: mouse only, never more than one every 90ms
+    document.addEventListener('pointerover', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      const t = (e.target as Element).closest('a, button');
+      if (!t || t.contains(e.relatedTarget as Node | null) || t === sndBtn) return;
+      const now = performance.now();
+      if (now - lastHover < 90) return;
+      lastHover = now;
+      play(t.matches('.btn, button') ? 'buttonHover' : 'hover', 0.6);
+    });
+    // Clicks, matched to the game's own: starting the game, choosing a section, flipping an incident, everything else
+    document.addEventListener('click', (e) => {
+      const t = (e.target as Element).closest<HTMLElement>('a, button');
+      if (!t || t === sndBtn) return;
+      if ((t.dataset.cta ?? '').startsWith('launch')) play('startClick');
+      else if (t.closest('.site-header .nav')) play('optionClick');
+      else if (t.matches('[data-flip]')) playFlip(!!t.closest('.flip')?.classList.contains('flipped'));
+      else play('click');
+    }, true);
+    document.addEventListener('visibilitychange', () => {
+      if (ctx) document.hidden ? ctx.suspend() : ctx.resume();
+    });
+  }
+
+  /* ---------- Hero art: relational rows → embeddings → an indexed path. Stands in for the client's preview animation. ---------- */
+  const canvas = document.getElementById('hero-art') as HTMLCanvasElement | null;
+  const ctx = canvas?.getContext('2d');
+  if (canvas && ctx && canvas.offsetParent !== null) {
+    const btn = document.getElementById('hero-art-pause') as HTMLButtonElement;
+    type P3 = { x: number; y: number; z: number };
+    type Row = { x: number; y: number; w: number; h: number };
+    const seeded = (s: number) => () => ((s = (Math.imul(s ^ (s >>> 15), 1 | s) + 0x6d2b79f5) | 0), (((s ^ (s >>> 7)) >>> 0) % 1e6) / 1e6);
+    let rng = seeded(1);
+    let W = 0, H = 0, rows: Row[] = [], pts: P3[] = [], nbr: number[][] = [], path: number[] = [];
+    let lanes: { sx: number; sy: number; ex: number; ey: number }[] = [];
+    let parts: { born: number; life: number; sx: number; sy: number; to: number }[] = [];
+    let C = { cx: 0, cy: 0, R: 1 };
+    let raf = 0, t0 = performance.now(), tNow = 12, paused = false, onscreen = true, lastSpawn = 0;
+    const col: Record<string, string> = {};
+    const css = (n: string) => getComputedStyle(root).getPropertyValue(n).trim();
+    const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const bez = (a: number, b: number, c: number, d: number, t: number) => (1 - t) ** 3 * a + 3 * (1 - t) ** 2 * t * b + 3 * (1 - t) * t * t * c + t ** 3 * d;
+
+    const setup = () => {
+      const r = canvas.getBoundingClientRect();
+      if (!r.width) return;
+      W = r.width;
+      H = r.height;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const k of ['row-front', 'row-top', 'row-side', 'row-edge', 'cell', 'cell-hot', 'point', 'link', 'path', 'node-fill']) col[k] = css(`--art-${k}`);
+      rng = seeded(20261019);
+      const narrow = W < 640;
+      const box = { l: W * 0.06, r: W * 0.97 };
+      const bw = box.r - box.l;
+      const n = narrow ? 5 : 6, rh = narrow ? 15 : Math.min(30, H * 0.068), gap = rh * 0.55;
+      const rw = Math.max(110, Math.min(320, bw * 0.3));
+      const y0 = H * 0.52 - (n * rh + (n - 1) * gap) / 2;
+      rows = Array.from({ length: n }, (_, i) => ({ x: box.l, y: y0 + i * (rh + gap), w: rw, h: rh }));
+      const R = Math.min(bw * 0.28, H * 0.44);
+      C = { cx: box.r - R * 1.05, cy: H * 0.5, R };
+      const centers = [[-0.5, -0.3, 0.2], [0.45, -0.2, -0.3], [0.1, 0.45, 0.3], [-0.2, 0.3, -0.45], [0.5, 0.35, 0.25]];
+      pts = Array.from({ length: narrow ? 150 : 260 }, (_, i) => {
+        const c = centers[i % centers.length];
+        const g = () => (rng() + rng() + rng() - 1.5) * 0.42;
+        return { x: (c[0] + g()) * R, y: (c[1] + g()) * R * 0.8, z: (c[2] + g()) * R };
+      });
+      nbr = pts.map((p, i) =>
+        pts
+          .map((q, j) => [j, (p.x - q.x) ** 2 + (p.y - q.y) ** 2 + (p.z - q.z) ** 2] as [number, number])
+          .filter(([j]) => j !== i)
+          .sort((a, b) => a[1] - b[1])
+          .slice(0, 2)
+          .map(([j]) => j),
+      );
+      const byX = pts.map((p, i) => [i, p.x]).sort((a, b) => a[1] - b[1]);
+      path = Array.from({ length: 7 }, (_, k) => byX[Math.floor(((k + 0.5) / 7) * byX.length)][0]);
+      lanes = rows.map((r, i) => ({ sx: r.x + r.w + r.h * 0.6 + 6, sy: r.y + r.h / 2, ex: C.cx - R * 0.7, ey: C.cy + (i - (n - 1) / 2) * R * 0.16 }));
+      parts = [];
+      draw(tNow);
+    };
+
+    const project = (p: P3, a: number) => {
+      const ca = Math.cos(a), sa = Math.sin(a);
+      const x = p.x * ca + p.z * sa, z = -p.x * sa + p.z * ca;
+      const f = C.R * 3.2, s = f / (f + z);
+      return { x: C.cx + x * s, y: C.cy + p.y * s, s, d: (z / C.R + 1) / 2 };
+    };
+
+    const slab = (r: Row, hot: boolean) => {
+      const dx = r.h * 0.6, dy = -r.h * 0.45;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = col['row-edge'];
+      ctx.fillStyle = col['row-top'];
+      ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x + dx, r.y + dy); ctx.lineTo(r.x + r.w + dx, r.y + dy); ctx.lineTo(r.x + r.w, r.y); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = col['row-side'];
+      ctx.beginPath(); ctx.moveTo(r.x + r.w, r.y); ctx.lineTo(r.x + r.w + dx, r.y + dy); ctx.lineTo(r.x + r.w + dx, r.y + r.h + dy); ctx.lineTo(r.x + r.w, r.y + r.h); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = col['row-front'];
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      let x = r.x + r.h * 0.4;
+      const span = r.w - r.h * 0.8 - 18;
+      for (const c of [0.14, 0.3, 0.26, 0.2]) {
+        const w = (span * c) / 0.9;
+        ctx.fillStyle = hot ? col['cell-hot'] : col['cell'];
+        ctx.fillRect(x, r.y + r.h * 0.33, w, r.h * 0.34);
+        x += w + 6;
+      }
+    };
+
+    const live = () => motionOK() && !paused;
+
+    const draw = (t: number) => {
+      ctx.clearRect(0, 0, W, H);
+      // Nothing to draw until setup() has measured a real size (the query step below would read Q[-2] and throw)
+      if (!pts.length) return;
+      const P = pts.map((p) => project(p, Math.sin(t * ((2 * Math.PI) / 24)) * 0.38));
+      ctx.strokeStyle = col['link']; ctx.lineWidth = 1; ctx.beginPath();
+      P.forEach((p, i) => nbr[i].forEach((j) => { ctx.moveTo(p.x, p.y); ctx.lineTo(P[j].x, P[j].y); }));
+      ctx.stroke();
+      ctx.fillStyle = col['point'];
+      P.forEach((p) => { ctx.globalAlpha = 0.2 + 0.72 * (1 - p.d); ctx.beginPath(); ctx.arc(p.x, p.y, 1.1 + 1.8 * p.s * (1 - p.d * 0.5), 0, 6.283); ctx.fill(); });
+      ctx.globalAlpha = 1;
+      // The bridge: cells leave the rows as squares and arrive as points (visible in a still frame too)
+      const flow = live() ? (t * 0.35) % 0.1 : 0;
+      for (const l of lanes) {
+        for (let k = 0; k < 10; k++) {
+          const u = k / 10 + flow;
+          const x = bez(l.sx, l.sx + (l.ex - l.sx) * 0.5, l.ex - (l.ex - l.sx) * 0.5, l.ex, u), y = bez(l.sy, l.sy, l.ey, l.ey, u);
+          ctx.globalAlpha = 0.55 * Math.sin(Math.PI * Math.min(1, u)) + 0.1;
+          ctx.fillStyle = u < 0.5 ? col['cell-hot'] : col['point'];
+          if (u < 0.5) ctx.fillRect(x - 1.75, y - 1.75, 3.5, 3.5);
+          else { ctx.beginPath(); ctx.arc(x, y, 1.8, 0, 6.283); ctx.fill(); }
+        }
+      }
+      ctx.globalAlpha = 1;
+      // The indexed path, and a query travelling it
+      const Q = path.map((i) => P[i]);
+      ctx.strokeStyle = col['path']; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+      ctx.beginPath(); Q.forEach((p, k) => (k ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y))); ctx.stroke();
+      const f = ease((t % 3.6) / 3.6), segs = Q.length - 1, sf = f * segs, si = Math.min(segs - 1, Math.floor(sf)), u = sf - si;
+      Q.forEach((p, k) => {
+        ctx.fillStyle = col['node-fill']; ctx.strokeStyle = col['path']; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(p.x, p.y, k === Q.length - 1 ? 7 : 5, 0, 6.283); ctx.fill(); ctx.stroke();
+        if (k <= si || !motionOK()) { ctx.fillStyle = col['path']; ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 6.283); ctx.fill(); }
+      });
+      if (motionOK()) {
+        const qx = Q[si].x + (Q[si + 1].x - Q[si].x) * u, qy = Q[si].y + (Q[si + 1].y - Q[si].y) * u;
+        ctx.fillStyle = col['path']; ctx.beginPath(); ctx.arc(qx, qy, 4.5, 0, 6.283); ctx.fill();
+        ctx.globalAlpha = 0.22; ctx.beginPath(); ctx.arc(qx, qy, 11, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1;
+      }
+      const active = motionOK() ? Math.floor(t / 1.1) % rows.length : 2;
+      rows.forEach((r, i) => slab(r, i === active));
+      for (const q of parts) {
+        const k = (t - q.born) / q.life;
+        if (k < 0 || k > 1) continue;
+        const e = ease(k), end = P[q.to];
+        const bx = bez(q.sx, (q.sx + end.x) / 2, (q.sx + end.x) / 2, end.x, e), by = bez(q.sy, q.sy, end.y, end.y, e);
+        ctx.globalAlpha = Math.sin(Math.PI * Math.min(1, k * 1.15)) * 0.95;
+        ctx.fillStyle = k < 0.45 ? col['cell-hot'] : col['point'];
+        if (k < 0.45) ctx.fillRect(bx - 2, by - 2, 4, 4);
+        else { ctx.beginPath(); ctx.arc(bx, by, 2.1, 0, 6.283); ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const frame = () => {
+      raf = 0;
+      if (!live() || !onscreen) return;
+      const t = (performance.now() - t0) / 1000;
+      // No rows yet (the canvas can first measure at zero size, as in a frame): nothing to spawn from
+      if (t - lastSpawn > 0.08 && rows.length) {
+        lastSpawn = t;
+        const r = rows[Math.floor(t / 1.1) % rows.length];
+        parts.push({ born: t, life: 1.6 + rng() * 0.8, sx: r.x + r.w + r.h * 0.6 + 4, sy: r.y + r.h * (0.3 + rng() * 0.4), to: Math.floor(rng() * pts.length) });
+        parts = parts.filter((q) => t - q.born < q.life);
+      }
+      tNow = t;
+      draw(t);
+      raf = requestAnimationFrame(frame);
+    };
+    const play = () => {
+      if (!raf && live() && onscreen) { t0 = performance.now() - tNow * 1000; raf = requestAnimationFrame(frame); }
+    };
+    const stop = () => { cancelAnimationFrame(raf); raf = 0; };
+    const refresh = () => { stop(); btn.hidden = !motionOK(); setup(); play(); };
+
+    // The loop runs past 5s, so it has a pause control (WCAG 2.2.2)
+    btn.addEventListener('click', () => {
+      paused = !paused;
+      btn.setAttribute('aria-label', paused ? btn.dataset.play! : btn.dataset.pause!);
+      btn.setAttribute('aria-pressed', String(paused));
+      paused ? (stop(), draw(tNow)) : play();
+    });
+    new IntersectionObserver((es) => es.forEach((e) => { onscreen = e.isIntersecting; onscreen ? play() : stop(); })).observe(canvas);
+    new ResizeObserver(() => setup()).observe(canvas);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : play()));
+    reduce.addEventListener('change', () => { syncMotion(); armReveal(); refresh(); });
+    refresh();
+  } else {
+    reduce.addEventListener('change', () => { syncMotion(); armReveal(); });
+  }
+</script>

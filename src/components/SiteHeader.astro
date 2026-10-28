@@ -1,0 +1,179 @@
+---
+import { getImage } from 'astro:assets';
+import wordmark from '../assets/brand/decision-point-wordmark-white.png';
+import Icon from './Icon.astro';
+import { nav, assets } from '../content/copy';
+
+// No actions in the header (the hero and the sections carry them); the link of the section in view is highlighted
+// (PageScript.astro). The sound switch at the right end mutes the game's sounds; it needs JS, so it shows with it.
+// The logo is the customer's white wordmark used as a mask, so the grey is a token (--logo-ink), not a second file.
+// Recoloured on request: an agreed exception to using official marks as supplied.
+const logo = await getImage({ src: wordmark, height: 60, format: 'webp', quality: 90 });
+const ratio = wordmark.width / wordmark.height;
+---
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="wordmark" href="#top">
+      <span class="logo" role="img" aria-label={nav.brand} style={`--logo-src: url(${logo.src}); --logo-ratio: ${ratio}`}></span>
+    </a>
+    <nav class="nav" aria-label={assets.navLabel}>
+      <ul>
+        {nav.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+    <button type="button" class="snd" data-sound aria-label={nav.mute} aria-pressed="false" hidden>
+      <Icon name="volume" size={20} class="when-on" /><Icon name="volume-3" size={20} class="when-off" />
+    </button>
+  </div>
+</header>
+
+<script>
+  // The header gets its surface once the page scrolls
+  const header = document.querySelector<HTMLElement>('.site-header');
+  if (header) {
+    const update = () => header.classList.toggle('stuck', window.scrollY > 24);
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    height: var(--header-height);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-line);
+    transition: background-color var(--dur-state) var(--ease-state);
+  }
+
+  .site-header.stuck {
+    background: var(--color-header);
+    -webkit-backdrop-filter: saturate(140%) blur(14px);
+    backdrop-filter: saturate(140%) blur(14px);
+  }
+
+  .bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  /* The logo sets its height (--logo-h) and keeps the wordmark's proportions; the link keeps the 44px target.
+     Windows High Contrast drops mask colours, so there the mark takes the text colour. */
+  .wordmark {
+    --logo-h: 1rem;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-height: var(--target-min);
+  }
+
+  .logo {
+    display: block;
+    height: var(--logo-h);
+    aspect-ratio: var(--logo-ratio);
+    background: var(--logo-ink);
+    -webkit-mask: var(--logo-src) center / contain no-repeat;
+    mask: var(--logo-src) center / contain no-repeat;
+    transition: background-color var(--dur-state) var(--ease-state);
+  }
+
+  .wordmark:hover .logo {
+    background: var(--color-ink);
+  }
+
+  @media (forced-colors: active) {
+    .logo {
+      background: CanvasText;
+    }
+  }
+
+  /* The links spread toward the centre of the bar */
+  .nav {
+    margin-inline: auto;
+  }
+
+  .nav ul {
+    display: flex;
+    gap: clamp(1.25rem, 2.6vw, 2.75rem);
+    list-style: none;
+    padding: 0;
+  }
+
+  /* In the game's display face, small and tracked out; the section in view (aria-current, set by the page script) is
+     white */
+  .nav a {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target-min);
+    color: var(--color-muted);
+    font: 600 0.75rem / 1 var(--font-display);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--dur-state) var(--ease-state);
+  }
+
+  .nav a:hover,
+  .nav a[aria-current] {
+    color: var(--color-ink);
+  }
+
+  /* The display face runs wide: the five links fit from about 1060px; below that they give way (they never wrap) */
+  @media (max-width: 66rem) {
+    .nav {
+      display: none;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .wordmark {
+      --logo-h: 0.8125rem;
+    }
+  }
+
+  /* The sound switch: a 44px ghost square at the bar's right end; pressed (muted) shows the struck speaker */
+  .snd {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-line-strong);
+    background: transparent;
+    color: var(--color-muted);
+    cursor: pointer;
+    transition:
+      color var(--dur-state) var(--ease-state),
+      background-color var(--dur-state) var(--ease-state);
+  }
+
+  .snd[hidden] {
+    display: none;
+  }
+
+  .snd:hover {
+    color: var(--color-ink);
+    background: var(--color-hover-wash);
+  }
+
+  .snd > :global(.icon) {
+    grid-area: 1 / 1;
+  }
+
+  .snd :global(.when-off),
+  .snd[aria-pressed='true'] :global(.when-on) {
+    display: none;
+  }
+
+  .snd[aria-pressed='true'] :global(.when-off) {
+    display: block;
+  }
+</style>

@@ -1,0 +1,531 @@
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/geist-mono/wght.css';
+@import '@fontsource-variable/orbitron/wght.css';
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Large screens scale the root, not the layout: 16px up to 1440 CSS px, 22px from 2560. */
+html {
+  font-size: clamp(100%, 0.5179rem + 0.5357vw, 137.5%);
+  scroll-padding-top: calc(var(--header-height) + var(--space-8));
+  /* In-page links glide to their section; instant under reduced motion (below) */
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: #343b47 var(--color-bg);
+}
+
+/* The ground: deep navy with an Azure glow from the top right, as on the game's screens */
+body {
+  margin: 0;
+  background: radial-gradient(80% 40rem at 72% 0%, var(--glow-page), transparent 70%), var(--color-bg);
+  color: var(--color-body);
+  font: var(--weight-regular) var(--text-base) / var(--leading-normal) var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-hi);
+  color: var(--color-hi-ink);
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+}
+
+code {
+  font: var(--weight-medium) 0.88em / 1 var(--font-mono);
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+.wrap {
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: calc(var(--space-16) * -1);
+  z-index: 50;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-ink);
+  color: var(--color-bg);
+  font-weight: var(--weight-medium);
+}
+
+.skip-link:focus {
+  top: var(--space-3);
+}
+
+/* ---------- Shared roles (one class per job; components only set spacing) ---------- */
+
+.section {
+  position: relative;
+  isolation: isolate;
+  padding-block: var(--section-pad);
+}
+
+/* Section content paints above the dot field (DotField) */
+.section > .wrap {
+  position: relative;
+}
+
+/* Bands: sections alternate the ground and one lifted tone, edged top and bottom in the logo's light streak (a cyan
+   hairline fading out at both ends) rather than a flat rule */
+.band {
+  position: relative;
+  background:
+    linear-gradient(90deg, transparent 5%, var(--streak) 50%, transparent 95%) top / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 5%, var(--streak-soft) 50%, transparent 95%) bottom / 100% 1px no-repeat,
+    var(--color-band);
+  border-block: 0;
+}
+
+/* ---------- One recipe per job ---------- */
+
+/* The card: every framed surface on the page, glass over the ground (the board, the $200 card and the posts share it) */
+.card {
+  background: var(--color-glass);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-glass);
+}
+
+/* The icon chip: the page's one icon treatment (a 40px soft-square, hairline edge, icon in the accent). A category
+   chip sets --chip-hue and takes that hue instead. */
+.icon-chip {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-hi);
+}
+
+.icon-chip.hued {
+  color: var(--chip-hue);
+  border-color: color-mix(in srgb, var(--chip-hue) 50%, transparent);
+}
+
+/* The motion toggle: the hero art's pause/play control (WCAG 2.2.2). The incident set has none, an accepted exception. */
+.motion-toggle {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur-state) var(--ease-state),
+    border-color var(--dur-state) var(--ease-state);
+}
+
+.motion-toggle:hover {
+  color: var(--color-ink);
+  border-color: var(--color-muted);
+}
+
+.motion-toggle[hidden] {
+  display: none;
+}
+
+.motion-toggle > .icon {
+  grid-area: 1 / 1;
+}
+
+.motion-toggle .when-paused,
+.motion-toggle[aria-pressed='true'] .when-playing {
+  display: none;
+}
+
+.motion-toggle[aria-pressed='true'] .when-paused {
+  display: block;
+}
+
+/* Section titles: the game's display face in two tones, the setup in white on its own line, the payoff in the blue
+   (--title-blue, clipped to the text) with a soft glow. One size for every section (--text-h2). */
+.title {
+  position: relative;
+  max-width: 22ch;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 700;
+  font-synthesis: none;
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  background: var(--title-blue);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: var(--title-glow);
+}
+
+.t-quiet {
+  color: var(--color-title-quiet);
+}
+
+/* The setup paints white over the clipped blue */
+.title .t-quiet {
+  display: block;
+  -webkit-text-fill-color: var(--color-title-quiet);
+}
+
+/* A payoff on its own line takes the blue from its own top, not the whole title's */
+.title .line2 {
+  display: block;
+  background: var(--title-blue);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* The game's name never breaks across lines; on phones it sets the title's size so it fits on one */
+.dp-name {
+  white-space: nowrap;
+}
+
+.title:has(.dp-name) {
+  font-size: min(var(--text-h2), calc((100vw - 3rem) / 9.6));
+}
+
+/* Phones: every heading takes that same size, so they still match */
+@media (max-width: 40rem) {
+  .title,
+  .title.utility {
+    font-size: min(var(--text-h2), calc((100vw - 3rem) / 9.6));
+  }
+}
+
+.lede {
+  max-width: var(--measure);
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  color: var(--color-body);
+}
+
+.lede.wide {
+  max-width: var(--measure-wide);
+}
+
+/* Key phrases: the brighter, heavier member of the pair against body grey (words unchanged) */
+.key {
+  color: var(--color-ink);
+  font-weight: var(--weight-semibold);
+}
+
+.helper {
+  font-size: 1rem;
+  color: var(--color-muted);
+}
+
+/* One pending language: inline and list links with no target yet read as muted text with a solid, quiet underline and
+   a small clock; buttons keep their weight and a solid edge with the same clock (nothing dashed or dotted). */
+.pend {
+  display: inline;
+  color: var(--color-muted);
+  text-decoration: underline solid;
+  text-decoration-color: var(--pending-underline);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  cursor: not-allowed;
+}
+
+.pend .icon {
+  display: inline-block;
+  margin-inline: 0.15em 0.35em;
+  vertical-align: -0.15em;
+  color: var(--pending-mark);
+}
+
+.pend .icon:last-child {
+  margin-inline: 0.4em 0;
+}
+
+/* Title tiers: the feature tier is .title; Resources takes the utility tier */
+.title.utility {
+  font-size: var(--text-h2-utility);
+}
+
+.section.utility-pad {
+  padding-block: var(--space-24);
+}
+
+/* One split grid for the left/right sections */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--space-8) var(--space-18);
+  align-items: start;
+}
+
+.split-lead {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--color-body);
+}
+
+@media (max-width: 64rem) {
+  .split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Centred sections on desktop: title, lead and CTA on the axis; cards and lists stay left-aligned.
+   Phones align left with the content below. */
+@media (min-width: 40.01rem) {
+  .centred .title {
+    width: fit-content;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .centred .lede {
+    margin-inline: auto;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .centred .center-row {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* Scroll reveal: lists and headers. Only armed by the page script, and never
+   under reduced motion, so nothing is hidden without JS. */
+html.motion [data-reveal] :is(.rv, .rv-h) {
+  transition:
+    opacity var(--dur-enter) var(--ease-state) calc(var(--i, 0) * var(--stagger)),
+    transform var(--dur-enter) var(--ease-out) calc(var(--i, 0) * var(--stagger));
+}
+
+html.motion [data-reveal]:not(.rv-in) :is(.rv, .rv-h) {
+  opacity: 0;
+  transform: translateY(var(--move-enter));
+}
+
+.text-link {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--color-control-border);
+  text-underline-offset: 0.3em;
+  transition: text-decoration-color var(--dur-state) var(--ease-state);
+}
+
+.text-link:hover {
+  text-decoration-color: var(--color-ink);
+}
+
+/* ---------- Isometric inks: one light from the upper left on every face ----------
+   Faces from src/lib/iso.ts: it = top (lightest), il = the +y face (middle), ir = the +x face (darkest). */
+.iso :is(.it, .il, .ir) {
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+}
+
+.iso .it { fill: var(--illo-top); stroke: var(--illo-edge); }
+.iso .il { fill: var(--illo-front); stroke: var(--illo-edge-soft); }
+.iso .ir { fill: var(--illo-side); stroke: var(--illo-edge-soft); }
+
+.iso .hot .it { fill: color-mix(in srgb, var(--color-hi) 42%, var(--illo-top)); stroke: var(--color-hi); }
+.iso .hot .il { fill: color-mix(in srgb, var(--color-hi) 26%, var(--illo-front)); stroke: color-mix(in srgb, var(--color-hi) 60%, transparent); }
+.iso .hot .ir { fill: color-mix(in srgb, var(--color-hi) 16%, var(--illo-side)); stroke: color-mix(in srgb, var(--color-hi) 60%, transparent); }
+
+.iso :is(.vec, .pk) .it { fill: var(--illo-wire); stroke: var(--illo-wire); }
+.iso :is(.vec, .pk) .il { fill: color-mix(in srgb, var(--illo-wire) 62%, var(--illo-front)); stroke: none; }
+.iso :is(.vec, .pk) .ir { fill: color-mix(in srgb, var(--illo-wire) 38%, var(--illo-side)); stroke: none; }
+.iso .vec { opacity: 0.8; }
+
+.iso .ghost :is(.it, .il, .ir) { fill: none; stroke: var(--color-hi); stroke-width: 1.5; }
+
+.iso .cell { fill: var(--illo-cell); }
+.iso .hot-cell { fill: var(--illo-wire); }
+.iso :is(.wire, .limit) { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.iso .wire { stroke: var(--illo-wire); stroke-width: 1.75; opacity: 0.7; }
+.iso .wire.hi { stroke: var(--color-hi); opacity: 1; }
+.iso .limit { stroke: var(--color-muted); stroke-width: 1.5; }
+.iso .joint { fill: var(--color-well); stroke: var(--illo-wire); stroke-width: 1.5; }
+.iso .joint.hi { stroke: var(--color-hi); }
+.iso .tag { font: 600 13px/1 var(--font-mono); fill: var(--color-muted); }
+/* The deleted product's empty footprint on the catalog (card 2): a dark hole with a quiet edge */
+.iso .gap { fill: var(--color-well); stroke: var(--illo-edge-soft); stroke-width: 1.25; }
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/*
+ * Borderless surfaces. Surfaces separate by colour, not by lines: no seams between sections, no card outlines,
+ * Developer Resources as faintly outlined tiles that take their column's hue on hover, and the AMD band as a soft
+ * Azure-to-AMD-red field. Selectors are doubled to win over the components' scoped rules without editing them.
+ */
+
+/* Sections: the lifted band is colour only, no hairline seams */
+html .band {
+  border-block: 0;
+}
+
+/* Cards: the surface colour is the edge */
+html .card {
+  border-color: transparent;
+}
+
+/* ---------- Developer Resources: three groups, no dividers ---------- */
+
+html #resources .col + .col {
+  border: 0;
+}
+
+/* Tiles: empty, with a very faint outline; on hover a faint wash of the column's hue from the top left
+   (Learn blue, Build amber, Community violet: the column chips' --chip-hue) */
+html #resources .tile {
+  background: transparent;
+  border: 1px solid rgb(246 247 249 / 0.08);
+  transition:
+    background-color var(--dur-state) var(--ease-state),
+    border-color var(--dur-state) var(--ease-state),
+    translate var(--dur-state) var(--ease-out);
+}
+
+html #resources a.tile:is(:hover, :focus-visible) {
+  background: radial-gradient(130% 140% at 0% 0%, color-mix(in srgb, var(--chip-hue) 16%, transparent), transparent 62%);
+  border-color: color-mix(in srgb, var(--chip-hue) 28%, transparent);
+}
+
+html #resources a.tile:is(:hover, :focus-visible) .t {
+  text-decoration-color: var(--chip-hue);
+}
+
+/* ---------- Real hardware: Azure on the left, AMD red on the right, no rules ---------- */
+
+html section.amd.amd {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  background: none;
+}
+
+/* The field fades in and out at the top and bottom, so the band has no hard edge either */
+html section.amd.amd::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 85% at 0% 45%, rgb(15 108 189 / 0.26), transparent 70%),
+    radial-gradient(60% 85% at 100% 45%, rgb(237 28 36 / 0.2), transparent 70%),
+    linear-gradient(90deg, rgb(15 108 189 / 0.08), rgb(110 60 150 / 0.06) 50%, rgb(237 28 36 / 0.07));
+  -webkit-mask: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  pointer-events: none;
+}
+
+/* ---------- Radii and surface tones ---------- */
+
+/* Softer corners on controls and cards */
+:root:root {
+  --radius-sm: 10px;
+  --radius-md: 14px;
+
+  /* Surface steps big enough to see: steps a few code values above black get crushed to one black on many screens
+     (HDR on Windows maps SDR near-black flat). Ground → band → card → raised card. */
+  --color-band: #111823;
+  --color-surface: #19212e;
+  --color-surface-2: #212b3a;
+}
+
+/* ---------- Badges: every badge in the same plain container, no glow ---------- */
+
+html #badges .badge .art-box {
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  height: 6rem;
+  margin-top: -0.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+  border: 0;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+}
+
+html #badges .badge .art-box .art {
+  width: 4.25rem;
+  height: 4.25rem;
+  margin: 0;
+  filter: none;
+}
+
+@media (max-width: 40rem) {
+  html #badges .badge .art-box {
+    width: 4.75rem;
+    height: 4.75rem;
+  }
+
+  html #badges .badge .art-box .art {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}

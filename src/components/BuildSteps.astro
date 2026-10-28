@@ -1,0 +1,302 @@
+---
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+import type { IconName } from '../lib/icons';
+import { build, guidance, resources } from '../content/copy';
+import { links, type LinkKey } from '../content/links';
+import { looksLive, titleParts } from '../lib/inline';
+import { fragment } from '../lib/drawings';
+
+// The step tiles run top to bottom; "Stay inside the $200" sits beside them as an always-open call-out (a deliberate
+// departure from the brief's collapsible guidance).
+const tipIcons: IconName[] = ['server', 'clock', 'sparkles'];
+const [stepsLine1, stepsLine2] = titleParts(build.stepsTitle);
+const [budgetLead, budgetFigure] = guidance.title.split(' $');
+// The faint isometric stack in the $200 well is decorative (aria-hidden, so the heading's name is unchanged)
+const stack = fragment();
+---
+
+<section class="section centred band" id="build-steps" data-reveal aria-labelledby="steps-title">
+  <div class="wrap">
+    <h2 class="title rv-h" id="steps-title">
+      <span class="t-quiet">{stepsLine1}</span> <span class="line2">{stepsLine2}</span>
+    </h2>
+    <p class="lede wide rv-h intro">{build.stepsIntro}</p>
+
+    <div class="grid">
+      <ol class="steps">
+        {
+          build.steps.map((s, i) => {
+            const href = links[s.link as LinkKey];
+            return (
+              <li class="step rv">
+                <span class="n" aria-hidden="true">{i + 1}</span>
+                <div class="content">
+                  <h3>{s.title}</h3>
+                  {s.body && <p>{s.body}</p>}
+                  {/* Ghost buttons: a primary fill in every step draws too much attention */}
+                  {looksLive(href) ? (
+                    <Button href={href} variant="ghost" cta={`step-${i + 1}`} icon={s.link === 'repo' ? 'brand-github' : undefined}>{s.button}</Button>
+                  ) : (
+                    <p class="pending-line">
+                      <span class="pend" role="link" aria-disabled="true">
+                        {s.link === 'repo' && <Icon name="brand-github" size={18} />}
+                        {s.button} · {resources.pending.toLowerCase()}
+                        <Icon name="clock" size={14} />
+                      </span>
+                    </p>
+                  )}
+                  {s.helper && <p class="helper">{s.helper}</p>}
+                </div>
+              </li>
+            );
+          })
+        }
+      </ol>
+
+      <div class="budget-wrap rv">
+      <aside class="budget" aria-labelledby="budget-title">
+        <h3 id="budget-title"><svg class="budget-iso" viewBox={stack.viewBox} aria-hidden="true" focusable="false" set:html={stack.svg} /><span class="bl">{budgetLead}</span> <span class="bn">${budgetFigure}</span></h3>
+        <ul class="tips">
+          {
+            guidance.items.map((t, i) => (
+              <li>
+                <span class="icon-chip" aria-hidden="true"><Icon name={tipIcons[i]} size={20} /></span>
+                <div><strong>{t.lead}</strong> {t.body}</div>
+              </li>
+            ))
+          }
+        </ul>
+      </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Each line of the title stays whole where it fits */
+  #steps-title {
+    max-width: none;
+  }
+
+  @media (min-width: 80rem) {
+    #steps-title > span {
+      white-space: nowrap;
+    }
+  }
+
+  .intro {
+    margin-top: var(--space-6);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: var(--space-12) var(--space-16);
+    align-items: start;
+    margin-top: var(--space-14);
+    text-align: left;
+  }
+
+  .steps {
+    position: relative;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* The rail is the hero's indexed path: a solid accent segment from each node to the next, ending on the last */
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: calc(1.25rem - var(--rail-width) / 2);
+    top: calc(2.5rem + var(--space-2));
+    bottom: var(--space-2);
+    width: var(--rail-width);
+    background: var(--rail);
+  }
+
+  .step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--space-6);
+    padding-bottom: 2.75rem;
+  }
+
+  .step:last-child {
+    padding-bottom: 0;
+  }
+
+  /* The node recipe shared with the pipelines: a 40px soft-square on the rail */
+  .n {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    border: 1px solid var(--numeral-edge);
+    font: 700 1.125rem / 1 var(--font-display);
+    font-synthesis: none;
+    letter-spacing: 0.04em;
+    color: var(--color-numeral);
+  }
+
+  .content h3 {
+    margin: 0.3rem 0 0.6rem;
+    font-size: var(--text-card-title);
+    font-weight: var(--weight-semibold);
+    letter-spacing: -0.015em;
+  }
+
+  .content :global(.btn) {
+    margin-top: var(--space-5);
+  }
+
+  .content .pending-line {
+    margin-top: var(--space-4);
+  }
+
+  .content .helper {
+    margin-top: 0.9rem;
+  }
+
+  /* The $200 call-out: the figure sits in a near-black well at the head of the raised card. Text stays on dark for
+     legibility. */
+  .budget-wrap {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-12));
+  }
+
+  #build-steps {
+    overflow: clip;
+  }
+
+
+  .budget {
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-3) var(--space-8) var(--space-6);
+    border-radius: var(--radius-md);
+    background: var(--color-glass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: var(--edge-highlight), var(--shadow-card);
+  }
+
+  /* The stack sits in the well's right side, over its top and right edges, and fades out towards the figure */
+  .budget-iso {
+    position: absolute;
+    right: -2.25rem;
+    top: -1.75rem;
+    width: 15rem;
+    height: auto;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse 95% 110% at 100% 20%, #000 35%, transparent 90%);
+    mask-image: radial-gradient(ellipse 95% 110% at 100% 20%, #000 35%, transparent 90%);
+  }
+
+  /* The tips' chips stay monotone; the cyan goes to the stack */
+  .budget :global(.icon-chip) {
+    color: var(--color-body);
+  }
+
+  .budget-iso {
+    --budget-iso-line: rgb(80 230 255 / 0.55);
+    --budget-iso-fill: rgb(80 230 255 / 0.07);
+  }
+
+  .budget-iso :global(path),
+  .budget-iso :global(circle) {
+    fill: var(--budget-iso-fill);
+    stroke: var(--budget-iso-line);
+    stroke-width: 1.25;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .bl,
+  .bn {
+    position: relative;
+  }
+
+  .budget h3 {
+    position: relative;
+    margin: 0 calc(var(--space-5) * -1) var(--space-3);
+    padding: var(--space-6) var(--space-5);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(ellipse 80% 120% at 100% 0%, var(--budget-wash), transparent 75%),
+      var(--color-well);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+    line-height: 1;
+  }
+
+  .bl {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: var(--weight-semibold);
+    color: var(--color-muted);
+  }
+
+  /* The figure in the display face and the titles' blue */
+  .bn {
+    display: block;
+    margin-top: 0.35rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 1.8rem + 2.6vw, 4rem);
+    font-weight: 700;
+    font-synthesis: none;
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    background: var(--title-blue);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: var(--title-glow);
+  }
+
+  .tips {
+    position: relative;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tips li {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: start;
+    padding-block: 1.1rem;
+    border-top: 1px solid var(--color-line);
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  .tips li:first-child {
+    border-top: 0;
+  }
+
+  .tips strong {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--color-ink);
+    font-weight: var(--weight-semibold);
+  }
+
+
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .budget-wrap {
+      position: relative;
+      top: 0;
+    }
+  }
+</style>

@@ -1,0 +1,128 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { badges } from '../content/copy';
+import { titleParts } from '../lib/inline';
+
+// The customer's badge art, as supplied: never recoloured, filtered, ringed or masked. Each file is matched to its badge
+// by name (the mapping was inferred and needs the customer's confirmation).
+const art = import.meta.glob<{ default: ImageMetadata }>('../assets/badges/*.png', { eager: true });
+const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
+const artFor = (name: string) => {
+  const hit = art[`../assets/badges/${slug(name)}.png`];
+  if (!hit) throw new Error(`No badge art for ${name}`);
+  return hit.default;
+};
+// How to earn each badge: the Titan's line is the brief's caption, moved under its badge
+const earn = badges.earn.map((line) => line ?? badges.titan);
+const [setup, payoff] = titleParts(badges.title);
+---
+
+<section class="section centred" id="badges" data-reveal aria-labelledby="badges-title">
+  <div class="wrap">
+    <h2 class="title rv-h" id="badges-title">
+      <span class="t-quiet">{setup}</span> {payoff}
+    </h2>
+    <p class="lede rv-h intro">{badges.intro}</p>
+    {/* Six badges as icon + heading rows on one grid */}
+    <ul class="grid">
+      {
+        badges.items.map((b, i) => (
+          <li class="badge rv">
+            {/* The art is the badge itself, so its alt is the badge's name. Drawn at 80px (2x density for sharp screens). Eager at low priority: six
+                files of 3–12KB, so the set never pops in mid-scroll. */}
+            <span class="art-box"><Image class="art" src={artFor(b.name)} alt={b.name} width={80} height={80} densities={[1, 2]} format="webp" quality={90} loading="eager" fetchpriority="low" decoding="async" /></span>
+            <span class="text">
+              <span class="name">{b.name}</span>
+              <span class="earn">{earn[i]}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* A shorter band than the other sections */
+  #badges {
+    overflow: clip;
+    padding-block: calc(var(--section-pad) * 0.7);
+  }
+
+
+  .intro {
+    margin-top: var(--space-6);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-10) var(--space-10);
+    margin-top: var(--space-14);
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  .badge {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-5);
+  }
+
+  /* The art is busy and saturated, so it is set small enough for the six to read as one calm set */
+  .art {
+    width: 5rem;
+    height: 5rem;
+    margin-top: -0.25rem;
+  }
+
+  .text {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-2);
+    padding-top: var(--space-2);
+  }
+
+  .name {
+    color: var(--color-ink);
+    font-weight: var(--weight-semibold);
+    font-size: 1.1875rem;
+    line-height: 1.3;
+  }
+
+  /* Balanced lines, so a two-line description never leaves its last word alone */
+  .earn {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-muted);
+    text-wrap: balance;
+  }
+
+  /* The AMD Transaction Titan is a badge like the others: no AMD red */
+  .art-box {
+    display: grid;
+    place-items: center;
+  }
+
+  @media (max-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+
+    .art {
+      width: 4rem;
+      height: 4rem;
+    }
+
+  }
+</style>

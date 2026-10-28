@@ -1,0 +1,224 @@
+---
+// Microsoft Clarity behind a consent banner, the one third-party script. Rendered only when PUBLIC_CLARITY_ID is set at
+// build time, or in the Dev preview build (PUBLIC_CONSENT_PREVIEW: the banner alone, nothing loaded); otherwise the page
+// ships none of this.
+// Consent mode v2: the tag loads at once with consent denied (Clarity's no-consent mode: a new ID per page view, no cookies),
+// and only an Accept upgrades it to granted. The choice is kept in localStorage for nine months (Clarity's own validity).
+// A browser sending Global Privacy Control is treated as a decline and never asked. Each CTA click goes out as two Clarity
+// events, its group and group @ placement (src/lib/cta.ts), and every session is tagged with the version it saw.
+import { assets, consent } from '../content/copy';
+import { links } from '../content/links';
+import { ANALYTICS_UI, CLARITY_ID } from '../lib/inline';
+import { version } from '../../package.json';
+---
+
+{
+  ANALYTICS_UI && (
+    <div class="consent" data-consent data-clarity-id={CLARITY_ID} data-version={`site v${version}`} role="region" aria-labelledby="consent-title" hidden>
+      <div class="copy">
+        <h2 id="consent-title">{consent.title}</h2>
+        <p>
+          {consent.body}{' '}
+          <a class="text-link" href={links.privacy} target="_blank" rel="noopener">{consent.privacy}<span class="sr-only"> {assets.newTab}</span></a>
+        </p>
+      </div>
+      <div class="actions">
+        <button type="button" class="act act-primary" data-consent-accept>{consent.accept}</button>
+        <button type="button" class="act act-ghost" data-consent-decline>{consent.decline}</button>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  import { ctaNames } from '../lib/cta';
+
+  const box = document.querySelector<HTMLElement>('[data-consent]');
+  if (box) {
+    type Choice = 'granted' | 'denied';
+    type Clarity = ((...args: unknown[]) => void) & { q?: unknown[] };
+    const w = window as unknown as { clarity?: Clarity };
+    const KEY = 'dp-consent';
+    const VALID_MS = 274 * 24 * 60 * 60 * 1000; // about nine months
+
+    const read = (): Choice | null => {
+      try {
+        const v = JSON.parse(localStorage.getItem(KEY) ?? 'null');
+        if ((v?.c === 'granted' || v?.c === 'denied') && Date.now() - v.t < VALID_MS) return v.c;
+      } catch {
+        /* storage blocked or unreadable: ask again */
+      }
+      return null;
+    };
+    const write = (c: Choice) => {
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ c, t: Date.now() }));
+      } catch {
+        /* storage blocked: the choice lasts for this page view only */
+      }
+    };
+
+    // Without a project ID (the Dev preview build) the banner is shown and remembers the choice, and nothing is sent anywhere
+    const id = box.dataset.clarityId ?? '';
+    let clarity: (...args: unknown[]) => void = () => {};
+    const send = (c: Choice) => clarity('consentv2', { ad_Storage: c, analytics_Storage: c });
+
+    const gpc = (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true;
+    const stored = read();
+
+    if (id) {
+      // Clarity's own queueing stub, so calls made before the tag arrives are replayed by it
+      w.clarity =
+        w.clarity ||
+        function () {
+          // eslint-disable-next-line prefer-rest-params
+          (w.clarity!.q = w.clarity!.q || []).push(arguments);
+        };
+      // Looked up at call time: the tag replaces window.clarity with the real function once it loads
+      clarity = (...args) => w.clarity!(...args);
+      send(stored ?? 'denied'); // first in the queue: consent is set before anything else is recorded
+
+      const tag = document.createElement('script');
+      tag.async = true;
+      tag.src = `https://www.clarity.ms/tag/${id}`;
+      document.head.appendChild(tag);
+
+      if (new URLSearchParams(location.search).get('from') === 'game') clarity('set', 'entry', 'game');
+      clarity('set', 'version', box.dataset.version ?? 'site');
+
+      // Every CTA click, links still pending included (the click still shows intent): the group, then group @ placement
+      document.addEventListener('click', (e) => {
+        const id = (e.target as Element).closest<HTMLElement>('[data-cta]')?.dataset.cta;
+        if (!id) return;
+        const [group, placement] = ctaNames(id);
+        clarity('event', group);
+        clarity('event', `${group} @ ${placement}`);
+      });
+    }
+
+    // The banner: shown until a choice is made, and again from the footer's "Cookie settings"
+    const accept = box.querySelector<HTMLButtonElement>('[data-consent-accept]')!;
+    const decline = box.querySelector<HTMLButtonElement>('[data-consent-decline]')!;
+    let opener: HTMLElement | null = null;
+    const close = (c: Choice) => {
+      write(c);
+      send(c);
+      box.hidden = true;
+      opener?.focus();
+      opener = null;
+    };
+    accept.addEventListener('click', () => close('granted'));
+    decline.addEventListener('click', () => close('denied'));
+    box.addEventListener('keydown', (e) => e.key === 'Escape' && opener && close(read() ?? 'denied'));
+    document.querySelectorAll<HTMLElement>('[data-consent-open]').forEach((b) =>
+      b.addEventListener('click', () => {
+        opener = b;
+        box.hidden = false;
+        accept.focus();
+      }),
+    );
+    if (!stored && !gpc) box.hidden = false;
+  }
+</script>
+
+<style>
+  /* Fixed to the viewport, so it never shifts the page; under the header's z-index scale (header 30, skip link 50) */
+  .consent {
+    position: fixed;
+    z-index: 40;
+    inset: auto var(--space-4) var(--space-4) var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+    max-width: 40rem;
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    box-shadow: var(--shadow-card);
+  }
+
+  .consent[hidden] {
+    display: none;
+  }
+
+  h2 {
+    font: var(--weight-semibold) var(--text-base) / 1.3 var(--font-sans);
+    color: var(--color-ink);
+  }
+
+  p {
+    margin-top: var(--space-2);
+    font-size: var(--text-sm);
+    line-height: 1.55;
+    color: var(--color-body);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  /* The two choices carry equal weight and size: declining is as easy as accepting */
+  .act {
+    position: relative;
+    flex: 1 1 8rem;
+    min-height: var(--target-sm);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    font: var(--weight-semibold) var(--text-sm) / 1.2 var(--font-sans);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-state) var(--ease-state),
+      transform var(--dur-press) var(--ease-state);
+  }
+
+  /* 40px visible, 44px hit area */
+  .act::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+  }
+
+  .act:active {
+    transform: scale(0.97);
+  }
+
+  .act-primary {
+    border: 1.5px solid transparent;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  .act-primary:hover {
+    background: var(--color-accent-hover);
+  }
+
+  .act-ghost {
+    border: 1.5px solid var(--color-control-border);
+    background: transparent;
+    color: var(--color-ink);
+  }
+
+  .act-ghost:hover {
+    background: var(--color-hover-wash);
+  }
+
+  @media (min-width: 40.0625rem) {
+    .consent {
+      inset: auto auto var(--space-6) var(--space-6);
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      width: min(40rem, calc(100vw - var(--space-12)));
+    }
+
+    .act {
+      flex: 0 0 auto;
+      min-width: 6.5rem;
+    }
+
+    .actions {
+      flex-wrap: nowrap;
+      flex-direction: column;
+    }
+  }
+</style>

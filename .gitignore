@@ -426,3 +426,9 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# Astro (Decision Point landing page)
+node_modules/
+dist/
+.astro/
+.env

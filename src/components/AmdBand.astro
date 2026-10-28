@@ -1,0 +1,101 @@
+---
+import { Image } from 'astro:assets';
+import DotField from './DotField.astro';
+import { amd } from '../content/copy';
+import { titleParts } from '../lib/inline';
+import microsoftWhite from '../assets/partners/microsoft-white.webp';
+import amdWhite from '../assets/partners/amd-white.png';
+
+// The official marks, as supplied (never recoloured or redrawn). Heights are optical: AMD's solid letterforms fill
+// their box, while the Microsoft wordmark is shorter than its symbol, so AMD is set smaller to match.
+const [setup, payoff] = titleParts(amd.lead);
+const logos = [
+  { src: microsoftWhite, alt: amd.microsoftLogoAlt, h: 28, format: 'webp' as const },
+  { src: amdWhite, alt: amd.amdLogoAlt, h: 19, format: 'png' as const },
+];
+---
+
+{/* The partner section, the last on the page: a top-aligned left/right split, ending on the logos */}
+<section class="amd" aria-labelledby="amd-title">
+  <DotField clear="50% 30%" />
+  <div class="wrap split">
+    <div class="lead-col">
+      <h2 class="title" id="amd-title">
+        <span class="t-quiet">{setup}</span> {payoff}
+      </h2>
+    </div>
+    <div class="side">
+      <p class="split-lead">{amd.body}</p>
+      <div class="marks">
+        <span class="by">{amd.eyebrow}</span>
+        <span class="logos">
+          {
+            logos.map((l, i) => (
+              <>
+                {i > 0 && <span class="divider" aria-hidden="true" />}
+                <Image src={l.src} alt={l.alt} height={l.h * 2} format={l.format} quality="max" style={`height: ${l.h / 16}rem`} class="logo" loading="eager" />
+              </>
+            ))
+          }
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .amd {
+    padding-block: var(--section-pad);
+    background: linear-gradient(180deg, rgb(237 28 36 / 0.09), var(--color-amd-bg) 40%, var(--color-bg));
+    border-top: 2px solid var(--color-amd);
+  }
+
+  /* The content paints above the dot field */
+  .amd > .wrap {
+    position: relative;
+  }
+
+  /* Side by side, the two columns sit together in the middle rather than at the far edges */
+  @media (min-width: 64.01rem) {
+    .split {
+      grid-template-columns: minmax(0, max-content) minmax(0, 30rem);
+      justify-content: center;
+      column-gap: clamp(var(--space-12), 6vw, 5rem);
+    }
+  }
+
+  /* The body's first line level with the title's (optical: the title's cap sits lower in its line box) */
+  .side {
+    padding-top: 0.35rem;
+  }
+
+  .marks {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-8);
+  }
+
+  .by {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--color-amd-text);
+  }
+
+  .logos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+  }
+
+  .logos :global(.logo) {
+    width: auto;
+  }
+
+  /* A thin vertical rule between the marks */
+  .divider {
+    width: 1px;
+    height: var(--space-6);
+    background: var(--color-line-strong);
+  }
+</style>

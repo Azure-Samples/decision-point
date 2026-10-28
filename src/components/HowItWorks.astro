@@ -1,0 +1,456 @@
+---
+import DotField from './DotField.astro';
+import Button from './Button.astro';
+import Icon from './Icon.astro';
+import { how } from '../content/copy';
+import { links } from '../content/links';
+import { emphasise, titleParts } from '../lib/inline';
+import { STAGE, sceneHybrid, sceneGhost, sceneSurge } from '../lib/drawings';
+
+// Code in the lessons (azure_ai.rank(), ai.create_pipeline(), on_change) is set in mono; the prose around it isn't.
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const withCode = (s: string) => esc(s).replace(/([a-z_]+(?:\.[a-z_]+)*\(\)|\bon_change\b)/g, '<code>$1</code>');
+
+const [setup, payoff] = titleParts(how.title);
+
+const steps = how.steps;
+
+// The incident drawings, each with one continuous movement: packets travel the indexed path into a ranked answer; a
+// change event clears a ghost from the index; the bars surge and settle under p95.
+const scenes = [sceneHybrid(), sceneGhost(), sceneSurge()];
+const pieceCss = scenes
+  .flatMap((sc) => sc.pieces)
+  .map((p) => p.css)
+  .join('');
+const names = [...new Set(scenes.flatMap((sc) => sc.pieces).map((p) => p.html.match(/mv (ill-[a-z0-9]+)/)![1]))];
+const runCss = names.map((n) => `html.motion .mv.${n}{animation-name:${n}}`).join('');
+const viewBox = `0 0 ${STAGE.w} ${STAGE.h}`;
+---
+
+<section class="section centred how band" id="how" data-reveal aria-labelledby="how-title">
+  <DotField light={['topglow']} />
+  <div class="wrap">
+    <h2 class="title rv-h" id="how-title"><span class="t-quiet">{setup}</span> {payoff}</h2>
+    <p class="lede rv-h lead" set:html={emphasise(how.lead, how.leadKey)} />
+
+    <ol class="stepper rv">
+      {
+        steps.map((st, i) => (
+          <li class="step">
+            <span class="mk" aria-hidden="true">{i + 1}</span>
+            <div class="st">
+              <h3 class="st-title">{st.title}</h3>
+              <p class="st-body">{st.body}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="cards-in rv" set:html={emphasise(how.cardsIn, how.cardsInKey)} />
+
+    {/* The incident loops run only while the set is in view and motion is allowed (PageScript sets .illo-live). No pause
+        control: an accepted WCAG 2.2.2 exception. */}
+    <style is:inline set:html={pieceCss + runCss}></style>
+    <ol class="flips" id="illos">
+      {
+        how.incidents.map((item, i) => (
+          <li class="flip rv">
+            <div class="flip-inner">
+              <div class="face front">
+                <div class="win iso" aria-hidden="true">
+                  <svg class="layer" viewBox={viewBox} set:html={scenes[i].back} />
+                  <Fragment set:html={scenes[i].pieces.map((p) => p.html).join('')} />
+                  {scenes[i].front && <svg class="layer" viewBox={viewBox} set:html={scenes[i].front} />}
+                </div>
+                <h3>{item.incident}</h3>
+                <button type="button" class="flip-btn" data-flip aria-expanded="false">
+                  <Icon name="refresh" size={16} />
+                  {how.learnLabel}
+                </button>
+              </div>
+              <div class="face back" inert>
+                <span class="lbl-back">{how.learnLabel}</span>
+                <p class="lesson" tabindex="-1" set:html={withCode(item.learn)} />
+                <button type="button" class="flip-btn" data-flip>
+                  <Icon name="refresh" size={16} />
+                  {how.flipBack}
+                </button>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="center-row cta rv"><Button href={links.game} variant="primary" cta="launch-how" icon="trophy">{how.cta}</Button></div>
+  </div>
+</section>
+
+<style>
+  .how {
+    padding-top: var(--space-24);
+    overflow: clip;
+  }
+
+  .lead {
+    margin-top: var(--space-6);
+  }
+
+  /* ---------- The stepper: three numbered markers on one hairline ----------
+     Equal columns, centred text, so the whole row balances on the page's axis. */
+  .stepper {
+    --mk: 2.5rem;
+    --col-gap: var(--space-8);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--col-gap);
+    max-width: 64rem;
+    margin: var(--space-14) auto 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .step {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: var(--space-5);
+    text-align: center;
+  }
+
+  /* The connector: from this marker's right edge to the next marker's left edge, with a little air at both ends */
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--mk) / 2);
+    left: calc(50% + var(--mk) / 2 + var(--space-3));
+    width: calc(100% + var(--col-gap) - var(--mk) - 2 * var(--space-3));
+    height: 1px;
+    background: var(--color-line-strong);
+  }
+
+  .mk {
+    width: var(--mk);
+    height: var(--mk);
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background: var(--color-well);
+    border: 1px solid var(--numeral-edge);
+    font: 700 1rem / 1 var(--font-display);
+    font-synthesis: none;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-numeral);
+  }
+
+  /* The body holds to two lines at desktop widths */
+  .st {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 20.5rem;
+  }
+
+  .st-title {
+    font-size: 1.1875rem;
+    font-weight: var(--weight-semibold);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  .st-body {
+    font-size: 1rem;
+    font-weight: var(--weight-regular);
+    line-height: 1.5;
+    color: var(--color-muted);
+    text-wrap: balance;
+  }
+
+  /* Narrower desktops, tablets and phones: one step smaller, so the longest body still holds to two lines */
+  @media (max-width: 80rem) {
+    .stepper {
+      --col-gap: var(--space-6);
+    }
+
+    .st-body {
+      font-size: 0.9375rem;
+    }
+  }
+
+  /* ---------- Flip cards ---------- */
+  .cards-in {
+    margin: var(--space-16) auto 0;
+    font-size: var(--text-lg);
+    text-align: center;
+  }
+
+  .flips {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-top: var(--space-8);
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+
+  .flip {
+    perspective: 1600px;
+  }
+
+  .flip-inner {
+    display: grid;
+    height: 100%;
+    transform-style: preserve-3d;
+  }
+
+  .face {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-height: 26rem;
+    padding: var(--space-3) var(--space-3) var(--space-6);
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .front {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line-strong);
+    box-shadow: var(--edge-highlight), var(--shadow-card);
+  }
+
+  .front > :not(.win) {
+    margin-inline: var(--space-4);
+  }
+
+  .back {
+    padding: 1.75rem;
+    background: color-mix(in srgb, var(--color-hi) 10%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, var(--color-hi) 55%, transparent);
+  }
+
+  /* The drawing's near-black window. The moving pieces are positioned in % of this 16:10 stage. */
+  .win {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--color-well);
+    box-shadow: inset 0 0 0 1px var(--color-line);
+  }
+
+  .win .layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .win :global(.pc) {
+    position: absolute;
+    display: block;
+  }
+
+  .win :global(.mv) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* Every incident title sits on exactly two lines: a measure that breaks the shortest title and balances the longest */
+  .face h3 {
+    max-width: 11em;
+    height: 2lh;
+    min-height: 2lh;
+    font-size: var(--text-card-title);
+    font-weight: var(--weight-semibold);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+
+  .lbl-back {
+    font: var(--weight-semibold) var(--text-sm) / 1.2 var(--font-sans);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-hi);
+  }
+
+  .lesson {
+    font-size: 1.5rem;
+    line-height: 1.4;
+    font-weight: var(--weight-medium);
+    color: var(--color-ink);
+  }
+
+  .lesson:focus {
+    outline: none;
+  }
+
+  /* Programmatic focus after a keyboard flip stays visible (WCAG 2.4.7) */
+  .lesson:focus-visible {
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: 6px;
+  }
+
+  .lesson :global(code) {
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-sm);
+    background: rgb(0 0 0 / 0.25);
+    font-size: 0.82em;
+  }
+
+  .flip-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    align-self: flex-start;
+    margin-top: auto;
+    min-height: var(--target-sm);
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--color-control-border);
+    background: transparent;
+    color: var(--color-ink);
+    font: var(--weight-semibold) var(--text-sm) / 1 var(--font-sans);
+    cursor: pointer;
+    transition: background-color var(--dur-state) var(--ease-state);
+  }
+
+  .flip-btn::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+  }
+
+  .flip-btn:hover {
+    background: var(--color-hover-wash);
+  }
+
+  /* With motion the card turns; exits are a step faster than entrances. Without it, the faces swap in place. */
+  :global(html.motion) .flip-inner {
+    transition: transform var(--dur-emph) var(--ease-out);
+  }
+
+  :global(html.motion) .flip.flipped .flip-inner {
+    transform: rotateY(180deg);
+    transition-duration: var(--dur-flip);
+  }
+
+  :global(html.motion) .back {
+    transform: rotateY(180deg);
+  }
+
+  :global(html:not(.motion)) .flip .back,
+  :global(html:not(.motion)) .flip.flipped .front {
+    visibility: hidden;
+  }
+
+  :global(html:not(.motion)) .flip.flipped .back {
+    visibility: visible;
+  }
+
+  /* ---------- The incident loops ----------
+     Transform only, each piece its own composited layer. Paused until the set is in view (PageScript's .illo-live) and
+     created only with motion allowed, so under reduced motion each piece shows its still pose. */
+  :global(html.motion) .win :global(.mv) {
+    animation-duration: calc(var(--period) / 4);
+    animation-timing-function: var(--ease-ambient);
+    animation-iteration-count: infinite;
+    animation-play-state: paused;
+    will-change: transform;
+  }
+
+  :global(html.motion) .flips:global(.illo-live) .win :global(.mv) {
+    animation-play-state: running;
+  }
+
+  /* Card 1: the second packet on each route runs half a loop behind; route B a beat behind route A */
+  :global(html.motion) .win :global(.mv.ill-a.late) {
+    animation-delay: calc(var(--period) / -8);
+  }
+
+  :global(html.motion) .win :global(.mv.ill-b) {
+    animation-delay: calc(var(--period) / -16);
+  }
+
+  :global(html.motion) .win :global(.mv.ill-b.late) {
+    animation-delay: calc(var(--period) * -3 / 16);
+  }
+
+  :global(html:not(.motion)) .win :global(.mv.late) {
+    visibility: hidden;
+  }
+
+  /* Card 2: the change event and the ghost run in step (no delays) */
+
+  /* Card 3: the bars surge in a wave, two beats apart */
+  :global(html.motion) .win :global(.mv[class*='ill-s']) {
+    animation-delay: calc(var(--i) * var(--stagger) * 2);
+  }
+
+  .cta {
+    margin-top: var(--space-12);
+  }
+
+  @media (max-width: 64rem) {
+    .flips {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 34rem;
+      margin-inline: auto;
+    }
+
+    .face {
+      min-height: 0;
+    }
+  }
+
+  /* Phones: the stepper stacks; markers in a left column on a vertical hairline, the words beside them */
+  @media (max-width: 40rem) {
+    .stepper {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-6);
+      max-width: none;
+    }
+
+    .step {
+      grid-template-columns: var(--mk) minmax(0, 1fr);
+      justify-items: start;
+      align-items: start;
+      gap: var(--space-4);
+      text-align: left;
+    }
+
+    .step:not(:last-child)::after {
+      top: calc(var(--mk) + var(--space-2));
+      bottom: calc(var(--space-6) * -1 + var(--space-2));
+      left: calc(var(--mk) / 2);
+      width: 1px;
+      height: auto;
+    }
+
+    .st {
+      max-width: none;
+      padding-top: 0.45rem;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .cards-in {
+      margin-top: var(--space-12);
+      text-align: left;
+    }
+
+    .lesson {
+      font-size: 1.3125rem;
+    }
+  }
+</style>

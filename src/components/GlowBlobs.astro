@@ -1,0 +1,55 @@
+---
+// A few large, soft teal and Azure blobs behind a section. Static and decorative: aria-hidden, pointer-events none,
+// under the content, clipped to the section so nothing bleeds past the page edge. Sizes and strengths are tokens.
+
+interface Blob {
+  hue: 'teal' | 'azure';
+  /** The blob's top-left corner, in % of the host (it may start outside: the host clips) */
+  x: string;
+  y: string;
+}
+
+interface Props {
+  blobs: Blob[];
+}
+
+const { blobs } = Astro.props;
+---
+
+<div class="blobs" aria-hidden="true">
+  {blobs.map((b) => <i class:list={['blob', b.hue]} style={`left: ${b.x}; top: ${b.y}`} />)}
+</div>
+
+<style>
+  .blobs {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: clip;
+    pointer-events: none;
+  }
+
+  .blob {
+    position: absolute;
+    width: var(--blob-size);
+    height: var(--blob-size);
+    border-radius: 50%;
+    filter: blur(var(--blob-blur));
+    opacity: var(--blob-opacity);
+  }
+
+  .teal {
+    background: radial-gradient(circle, var(--blob-teal), transparent 65%);
+  }
+
+  .azure {
+    background: radial-gradient(circle, var(--blob-azure), transparent 65%);
+  }
+
+  @media (max-width: 40rem) {
+    .blob {
+      width: var(--blob-size-sm);
+      height: var(--blob-size-sm);
+    }
+  }
+</style>
