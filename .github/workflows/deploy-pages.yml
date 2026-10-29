@@ -2,9 +2,10 @@
 # One-time setup: Settings → Pages → Build and deployment → Source: GitHub Actions.
 #
 # SITE_URL and SITE_BASE come from the Pages configuration, so the same workflow serves the project URL
-# (https://<owner>.github.io/<repo>/) or a custom domain with no edits. PUBLIC_CLARITY_ID and PUBLIC_INDEX are optional
-# repository variables (Settings → Secrets and variables → Actions → Variables); unset, the build has no analytics and
-# stays noindex.
+# (https://<owner>.github.io/<repo>/) or a custom domain with no edits. The deployed site reports to the Clarity project
+# z4u8czd46j (a public ID: it ships in the page anyway); a PUBLIC_CLARITY_ID repository variable overrides it. Local builds
+# carry no ID, so testing never reaches the dashboard. PUBLIC_INDEX is an optional repository variable (Settings →
+# Secrets and variables → Actions → Variables); unset, the build stays noindex.
 name: Deploy to GitHub Pages
 
 on:
@@ -44,7 +45,7 @@ jobs:
         env:
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SITE_BASE: ${{ steps.pages.outputs.base_path }}
-          PUBLIC_CLARITY_ID: ${{ vars.PUBLIC_CLARITY_ID }}
+          PUBLIC_CLARITY_ID: ${{ vars.PUBLIC_CLARITY_ID || 'z4u8czd46j' }}
           PUBLIC_INDEX: ${{ vars.PUBLIC_INDEX }}
 
       - uses: actions/upload-pages-artifact@v5

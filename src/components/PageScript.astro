@@ -239,6 +239,8 @@
       }
       if (ctx && master) master.gain.setTargetAtTime(m ? 0 : 1, ctx.currentTime, 0.05);
       sndBtn.setAttribute('aria-pressed', String(m));
+      // Analytics names the click by what it just did; this runs before the click reaches Analytics' document listener
+      sndBtn.dataset.cta = m ? 'mute' : 'unmute';
     };
 
     sndBtn.hidden = false;

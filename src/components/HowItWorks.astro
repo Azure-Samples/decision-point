@@ -64,7 +64,7 @@ const viewBox = `0 0 ${STAGE.w} ${STAGE.h}`;
                   {scenes[i].front && <svg class="layer" viewBox={viewBox} set:html={scenes[i].front} />}
                 </div>
                 <h3>{item.incident}</h3>
-                <button type="button" class="flip-btn" data-flip aria-expanded="false">
+                <button type="button" class="flip-btn" data-flip data-cta={`flip-${i + 1}`} aria-expanded="false">
                   <Icon name="refresh" size={16} />
                   {how.learnLabel}
                 </button>
@@ -72,7 +72,7 @@ const viewBox = `0 0 ${STAGE.w} ${STAGE.h}`;
               <div class="face back" inert>
                 <span class="lbl-back">{how.learnLabel}</span>
                 <p class="lesson" tabindex="-1" set:html={withCode(item.learn)} />
-                <button type="button" class="flip-btn" data-flip>
+                <button type="button" class="flip-btn" data-flip data-cta={`flip-back-${i + 1}`}>
                   <Icon name="refresh" size={16} />
                   {how.flipBack}
                 </button>
