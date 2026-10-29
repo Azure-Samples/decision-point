@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { meta, assets } from '../content/copy';
+import { withBase } from '../lib/inline';
 
 interface Props {
   title?: string;
@@ -23,8 +24,11 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {/* No favicon until the Decision Point logo arrives; this stops the /favicon.ico request. */}
-    <link rel="icon" href="data:," />
+    {/* The logo's D. The .ico (16/32/48) is for browsers without SVG icons; sizes="32x32" keeps Chrome on the SVG.
+        Both are drawn on a 16-pixel grid, so the D stays sharp when the browser shrinks them to tab size. */}
+    <link rel="icon" href={withBase('favicon.ico')} sizes="32x32" />
+    <link rel="icon" href={withBase('icon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('apple-touch-icon.png')} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <meta name="theme-color" content="#05070b" />
     <meta property="og:type" content="website" />
