@@ -6,7 +6,7 @@
  * them; to revert one, put its `{{…}}` placeholder back (shown in its comment). `grep SELF-SOURCED` lists them all.
  */
 export const links = {
-  game: 'https://azure.dev-stand.site/start', // the game's staging start page
+  game: 'https://aka.ms/decision-point/play', // the game's public short link
   azureFree: 'https://azure.microsoft.com/free',
   repo: '{{repo_url}}',
   walkthrough: '{{repo_url}}#quickstart',
