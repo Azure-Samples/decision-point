@@ -2,14 +2,27 @@
 import { getImage } from 'astro:assets';
 import wordmark from '../assets/brand/decision-point-wordmark-white.png';
 import Icon from './Icon.astro';
-import { nav, assets } from '../content/copy';
+import microsoftWhite from '../assets/partners/microsoft-white.webp';
+import amdWhite from '../assets/partners/amd-white.png';
+import { nav, assets, amd } from '../content/copy';
 
 // No actions in the header (the hero and the sections carry them); the link of the section in view is highlighted
-// (PageScript.astro). The sound switch at the right end mutes the game's sounds; it needs JS, so it shows with it.
-// The logo is the white wordmark used as a mask, so its grey is a token (--logo-ink), not a second file: a deliberate
+// (PageScript.astro). The sound switch mutes the game's sounds; it needs JS, so it shows with it. The Microsoft and
+// AMD logos close the bar at the right end.
+// Each logo is its white file used as a mask, so its grey is a token (--logo-ink), not a second file: a deliberate
 // exception to using marks as supplied.
 const logo = await getImage({ src: wordmark, height: 60, format: 'webp', quality: 90 });
 const ratio = wordmark.width / wordmark.height;
+// Heights are optical, as in the AMD band: AMD's solid letterforms fill their box, so it is set smaller
+const partners = await Promise.all(
+  [
+    { src: microsoftWhite, alt: amd.microsoftLogoAlt, h: 22 },
+    { src: amdWhite, alt: amd.amdLogoAlt, h: 15 },
+  ].map(async (p) => ({
+    alt: p.alt,
+    style: `--logo-src: url(${(await getImage({ src: p.src, height: p.h * 3, format: 'webp', quality: 90 })).src}); --logo-ratio: ${p.src.width / p.src.height}; --logo-h: ${p.h / 16}rem`,
+  })),
+);
 ---
 
 <header class="site-header">
@@ -25,6 +38,17 @@ const ratio = wordmark.width / wordmark.height;
     <button type="button" class="snd" data-sound aria-label={nav.mute} aria-pressed="false" hidden>
       <Icon name="volume" size={20} class="when-on" /><Icon name="volume-3" size={20} class="when-off" />
     </button>
+    <div class="partners">
+      <span class="sr-only">{amd.eyebrow}</span>
+      {
+        partners.map((p, i) => (
+          <>
+            {i > 0 && <span class="divider" aria-hidden="true" />}
+            <span class="logo" role="img" aria-label={p.alt} style={p.style} />
+          </>
+        ))
+      }
+    </div>
   </div>
 </header>
 
@@ -92,9 +116,9 @@ const ratio = wordmark.width / wordmark.height;
     }
   }
 
-  /* The links spread toward the centre of the bar */
+  /* The links sit a set step after the wordmark, left of the bar's centre; the free space falls to their right */
   .nav {
-    margin-inline: auto;
+    margin-inline: clamp(var(--space-6), 3.5vw, 3.5rem) auto;
   }
 
   .nav ul {
@@ -137,7 +161,7 @@ const ratio = wordmark.width / wordmark.height;
     }
   }
 
-  /* The sound switch: a 44px ghost square at the bar's right end; pressed (muted) shows the struck speaker */
+  /* The sound switch: a 44px ghost square toward the bar's right end; pressed (muted) shows the struck speaker */
   .snd {
     flex: none;
     display: inline-grid;
@@ -162,6 +186,27 @@ const ratio = wordmark.width / wordmark.height;
   .snd:hover {
     color: var(--color-ink);
     background: var(--color-hover-wash);
+  }
+
+  /* The Microsoft and AMD logos, in the wordmark's grey, at the bar's right end with a thin rule between them. On
+     small screens they give way: the bar keeps the wordmark and the sound switch. */
+  .partners {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .divider {
+    width: 1px;
+    height: var(--space-5);
+    background: var(--color-line-strong);
+  }
+
+  @media (max-width: 40rem) {
+    .partners {
+      display: none;
+    }
   }
 
   .snd > :global(.icon) {
