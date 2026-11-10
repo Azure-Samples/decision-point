@@ -73,10 +73,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 33.5rem) minmax(0, 1fr);
-    /* The grid fills the hero: the copy and the video sit centred in the space above, and the trust strip stands on
-       the hero's floor, at least --space-16 below them (the two empty rows share whatever height is left) */
+    /* The grid fills the hero: the trust strip stands on the hero's floor, and the copy and the video sit centred between
+       the hero's top and the strip. The two empty rows take the same share of whatever height is left (at least
+       --space-16 each); there's no top padding, so the space above the content equals the space below it. */
     align-self: stretch;
-    grid-template-rows: 1fr auto auto minmax(var(--space-16), 1fr) auto;
+    grid-template-rows: minmax(var(--space-16), 1fr) auto auto minmax(var(--space-16), 1fr) auto;
     grid-template-areas:
       '. .'
       'copy art'
@@ -86,7 +87,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     align-items: center;
     /* The art takes most of the row; the gap scales down with the viewport so it stays large on smaller laptops */
     gap: 0 clamp(var(--space-12), 5vw, var(--space-18));
-    padding-block: var(--space-18) var(--space-16);
+    padding-block: 0 var(--space-16);
   }
 
   .copy {
