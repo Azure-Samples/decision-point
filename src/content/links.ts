@@ -15,7 +15,6 @@ export const links = {
   techCommunity: 'https://techcommunity.microsoft.com/category/azuredatabases/blog/adforpostgresql',
   discussions: 'https://github.com/Azure-Samples/postgres-hub/discussions',
   azurePostgresDocs: 'https://learn.microsoft.com/en-us/azure/postgresql/',
-  contribute: 'https://github.com/Azure-Samples/postgres-hub/blob/main/Contributing.md',
   // Microsoft's standard privacy statement and trademarks pages
   privacy: 'https://go.microsoft.com/fwlink/?LinkId=521839',
   trademarks: 'https://www.microsoft.com/legal/intellectualproperty/trademarks',

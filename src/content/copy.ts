@@ -174,7 +174,6 @@ export const footer = {
     { label: 'PostgreSQL Hub', link: 'postgresHub' },
     { label: 'Azure HorizonDB docs', link: 'horizonDbDocs' },
     { label: 'Azure Database for PostgreSQL docs', link: 'azurePostgresDocs' },
-    { label: 'Contribute on GitHub', link: 'contribute' },
     { label: 'Privacy', link: 'privacy' },
     { label: 'Trademarks', link: 'trademarks' },
   ],
