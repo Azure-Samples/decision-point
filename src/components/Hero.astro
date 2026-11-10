@@ -6,6 +6,8 @@ import DotField from './DotField.astro';
 import { hero } from '../content/copy';
 import { links } from '../content/links';
 import { withoutGlyph } from '../lib/inline';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <section class="hero" aria-labelledby="hero-title">
@@ -21,18 +23,33 @@ import { withoutGlyph } from '../lib/inline';
         <Button href={links.game} variant="primary" cta="launch-hero" icon="player-play">{hero.primary}</Button>
         <Button href="#build-steps" cta="build-hero" icon="terminal-2">{withoutGlyph(hero.build)}</Button>
       </div>
-      <ul class="facts">
-        {hero.facts.map((f) => <li><Icon name="check" size={18} />{f}</li>)}
-      </ul>
     </div>
-    {/* The slot for the client's preview animation. Until it arrives, the brief's motif is drawn live. */}
+    {/* The client's game preview in a full player (Media Chrome: the browser's own <video>, with controls we place and
+        style). Without JS it keeps the browser's controls; the page script starts it muted (no browser allows sound
+        before a click) and leaves it still under reduced motion. The data-cta names are kept current by the page
+        script, so each click is counted as the action it takes. */}
     <figure class="art">
-      <span class="art-slot">{hero.artSlot} <small>{hero.artSlotNote}</small></span>
-      <canvas id="hero-art" role="img" aria-label={hero.artLabel}></canvas>
-      <button type="button" class="art-pause motion-toggle" id="hero-art-pause" aria-label={hero.pause} aria-pressed="false" data-play={hero.play} data-pause={hero.pause} hidden>
-        <Icon name="player-pause" size={16} class="when-playing" /><Icon name="player-play" size={16} class="when-paused" />
-      </button>
+      <media-controller class="player" autohide="2" defaultstreamtype="on-demand">
+        <video slot="media" id="hero-video" controls muted loop playsinline preload="metadata" poster={`${base}/video/decision-point-preview-poster.jpg`} aria-label={hero.videoLabel}>
+          <source src={`${base}/video/decision-point-preview.mp4`} type="video/mp4" />
+        </video>
+        <media-control-bar class="bar">
+          <media-play-button id="hero-video-play" data-cta="video-pause"></media-play-button>
+          <media-seek-backward-button seekoffset="10" data-cta="video-seek-back"></media-seek-backward-button>
+          <media-seek-forward-button seekoffset="10" data-cta="video-seek-forward"></media-seek-forward-button>
+          <div class="vol">
+            <media-mute-button id="hero-video-mute" data-cta="video-sound-on" notooltip></media-mute-button>
+            <media-volume-range></media-volume-range>
+          </div>
+          <media-time-range></media-time-range>
+          <media-time-display showduration></media-time-display>
+          <media-fullscreen-button data-cta="video-fullscreen"></media-fullscreen-button>
+        </media-control-bar>
+      </media-controller>
     </figure>
+    <ul class="facts">
+      {hero.facts.map((f) => <li><Icon name="check" size={18} />{f}</li>)}
+    </ul>
   </div>
 </section>
 
@@ -56,13 +73,20 @@ import { withoutGlyph } from '../lib/inline';
     width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 33.5rem) minmax(0, 1fr);
+    /* The grid fills the hero: the copy and the video sit centred in the space above, and the trust strip stands on
+       the hero's floor, at least --space-16 below them (the two empty rows share whatever height is left) */
+    align-self: stretch;
+    grid-template-rows: 1fr auto auto minmax(var(--space-16), 1fr) auto;
     grid-template-areas:
+      '. .'
       'copy art'
-      'act art';
+      'act art'
+      '. .'
+      'facts facts';
     align-items: center;
     /* The art takes most of the row; the gap scales down with the viewport so it stays large on smaller laptops */
-    gap: var(--space-8) clamp(var(--space-12), 5vw, var(--space-18));
-    padding-block: var(--space-18);
+    gap: 0 clamp(var(--space-12), 5vw, var(--space-18));
+    padding-block: var(--space-18) var(--space-16);
   }
 
   .copy {
@@ -76,6 +100,7 @@ import { withoutGlyph } from '../lib/inline';
   .act {
     grid-area: act;
     align-self: start;
+    margin-top: var(--space-8);
   }
 
   .copy {
@@ -150,12 +175,15 @@ import { withoutGlyph } from '../lib/inline';
     }
   }
 
-  /* The trust strip: one line from tablet up (it may wrap on phones only) */
+  /* The trust strip: centred on the page at the foot of the hero, so it reads as the hero's footing rather than a
+     caption under the video, its four facts spaced well apart; one line on desktop (it wraps on narrower screens) */
   .facts {
+    grid-area: facts;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    margin-top: var(--space-5);
+    justify-content: center;
+    gap: var(--space-2) var(--space-10);
+    margin: 0;
     padding: 0;
     list-style: none;
     font-size: 0.9375rem;
@@ -174,8 +202,7 @@ import { withoutGlyph } from '../lib/inline';
     color: var(--color-hi);
   }
 
-  /* The client-asset slot: the brief's 16:9 in a near-black well (the same well as the incident windows), framed and
-     contained; the label is a quiet corner tab */
+  /* The client's 16:9 preview in a near-black well (the same well as the incident windows), framed and contained */
   .art {
     position: relative;
     aspect-ratio: 16 / 9;
@@ -187,47 +214,139 @@ import { withoutGlyph } from '../lib/inline';
     box-shadow: var(--edge-highlight), var(--shadow-card);
   }
 
-  .art canvas {
-    position: relative;
+  /* The player fills the frame. Its controls take the site's type, ink and highlight: a dark fade along the bottom
+     instead of a solid bar, the played part of the timeline and the volume in the highlight, and the site's focus ring.
+     They hide after 2s without a pointer and come back on hover, focus or tap. */
+  .art {
+    container-type: inline-size;
+  }
+
+  .player {
     display: block;
     width: 100%;
     height: 100%;
+    --media-font-family: var(--font-sans);
+    --media-font-size: 0.875rem;
+    --media-primary-color: var(--color-ink);
+    --media-secondary-color: transparent;
+    --media-icon-color: var(--color-ink);
+    --media-control-background: transparent;
+    --media-control-hover-background: rgb(246 247 249 / 0.12);
+    --media-control-height: 1.5rem;
+    --media-control-padding: 0.5rem;
+    --media-range-bar-color: var(--color-hi);
+    --media-range-thumb-background: var(--color-ink);
+    --media-range-track-background: rgb(246 247 249 / 0.24);
+    --media-time-range-buffered-color: rgb(246 247 249 / 0.38);
+    --media-range-track-border-radius: 2px;
+    --media-tooltip-background-color: var(--color-bg);
+    --media-preview-time-background: var(--color-bg);
+    --media-focus-box-shadow: inset 0 0 0 2px var(--color-focus);
   }
 
-  .art-slot {
-    position: absolute;
-    left: var(--space-3);
-    top: var(--space-3);
-    z-index: 1;
-    padding: 0.3rem 0.55rem;
+  .player video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .bar {
+    width: 100%;
+    align-items: center;
+    padding: var(--space-6) var(--space-2) var(--space-1);
+    background: linear-gradient(transparent, rgb(5 9 19 / 0.88));
+  }
+
+  /* The timeline has no hover box: the bar itself answers, thickening from 4px to 6px */
+  .bar media-time-range {
+    flex: 1;
+    min-width: 0;
+    --media-control-hover-background: transparent;
+  }
+
+  .bar media-time-range:hover {
+    --media-range-track-height: 6px;
+  }
+
+  /* Every control's hover fill (and focus ring) takes the same rounded corners */
+  .bar :is(media-play-button, media-seek-backward-button, media-seek-forward-button, media-mute-button, media-volume-range, media-time-range, media-time-display, media-fullscreen-button) {
     border-radius: var(--radius-sm);
-    background: var(--color-bg);
-    border: 1px solid var(--color-line-strong);
-    color: var(--color-muted);
-    font: var(--weight-medium) var(--text-xs) / 1.2 var(--font-mono);
   }
 
-  .art-slot small {
-    margin-left: 0.35rem;
-    font-size: inherit;
-    font-weight: var(--weight-regular);
+  /* Volume: the mute switch, with the slider floating in a small panel just above it on hover or focus. The panel sits
+     over the video, not in the bar, so the timeline never gives up width, and only its opacity and position animate
+     (no layout per frame). It touches the switch, so the pointer can travel up into it without the hover dropping;
+     it fades out a beat late for the same reason. Touch screens get the switch only (iOS allows no volume but the
+     device's; Media Chrome drops the slider there itself). */
+  .vol {
+    position: relative;
+    display: flex;
+    align-items: center;
   }
 
-  .art-pause {
+  .vol media-volume-range {
     position: absolute;
-    right: var(--space-3);
-    bottom: var(--space-3);
+    bottom: 100%;
+    left: 50%;
+    width: 7.5rem;
+    height: 2.25rem;
+    padding-inline: 0.75rem;
+    background: rgb(5 9 19 / 0.92);
+    box-shadow: inset 0 0 0 1px var(--color-line-strong);
+    opacity: 0;
+    visibility: hidden;
+    translate: -50% 0.25rem;
+    transition:
+      opacity var(--dur-state) var(--ease-out) 0.15s,
+      translate var(--dur-state) var(--ease-out) 0.15s,
+      visibility 0s linear calc(var(--dur-state) + 0.15s);
+  }
+
+  .vol:is(:hover, :focus-within) media-volume-range {
+    opacity: 1;
+    visibility: visible;
+    translate: -50% 0;
+    transition:
+      opacity var(--dur-state) var(--ease-out),
+      translate var(--dur-state) var(--ease-out),
+      visibility 0s;
+  }
+
+  @media (hover: none) {
+    .vol media-volume-range {
+      display: none;
+    }
+  }
+
+  /* A narrow frame (phones) keeps play, sound, the timeline and fullscreen; skipping and the clock go */
+  @container (max-width: 26rem) {
+    .bar :is(media-seek-backward-button, media-seek-forward-button, media-time-display) {
+      display: none;
+    }
   }
 
   @media (max-width: 64rem) {
     .grid {
       grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
       grid-template-areas:
         'copy'
         'act'
-        'art';
+        'art'
+        'facts';
+      align-self: center;
       row-gap: var(--space-8);
       padding-block: var(--space-16) var(--space-8);
+    }
+
+    /* Stacked, the rows keep the one gap, and the strip follows the video at the usual step */
+    .act {
+      margin-top: 0;
+    }
+
+    .facts {
+      margin-top: var(--space-6);
+      column-gap: var(--space-6);
     }
 
     /* Stacked, a static spotlight sits under the art, and the dot field keeps to the lower half, clear of the copy */
@@ -259,21 +378,6 @@ import { withoutGlyph } from '../lib/inline';
       justify-content: center;
     }
 
-    /* Phones: the slot label sits on its own strip above the 16:9 canvas instead of over the motif */
-    .art {
-      aspect-ratio: auto;
-    }
-
-    .art-slot {
-      position: static;
-      display: block;
-      margin: var(--space-3) var(--space-3) 0;
-    }
-
-    .art canvas {
-      aspect-ratio: 16 / 9;
-      height: auto;
-    }
   }
 
   /* 320px: the labels and the trust strip may wrap */
@@ -290,3 +394,28 @@ import { withoutGlyph } from '../lib/inline';
     }
   }
 </style>
+
+<script>
+  // The player's controls, only the ones it shows (Media Chrome, self-hosted from npm)
+  import 'media-chrome/media-controller';
+  import 'media-chrome/media-control-bar';
+  import 'media-chrome/media-play-button';
+  import 'media-chrome/media-seek-backward-button';
+  import 'media-chrome/media-seek-forward-button';
+  import 'media-chrome/media-mute-button';
+  import 'media-chrome/media-volume-range';
+  import 'media-chrome/media-time-range';
+  import 'media-chrome/media-time-display';
+  import 'media-chrome/media-fullscreen-button';
+
+  // The volume panel shows on hover or focus. A mouse click on the switch or the slider leaves focus there, so once the
+  // pointer leaves, focus is dropped and the panel closes; keyboard users keep it while they tab through.
+  const vol = document.querySelector<HTMLElement>('.vol');
+  vol?.addEventListener('pointerleave', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const el = document.activeElement as HTMLElement | null;
+    if (!el || !vol.contains(el)) return;
+    (el.shadowRoot?.activeElement as HTMLElement | null)?.blur();
+    el.blur();
+  });
+</script>

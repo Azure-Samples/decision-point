@@ -44,10 +44,11 @@ const [setup, payoff] = titleParts(badges.title);
 </section>
 
 <style>
-  /* A shorter band than the other sections */
+  /* A shorter band than the other sections, with a little more room under the badges than over the title (the art's
+     weight sits low, so an even split read as squashed at the bottom) */
   #badges {
     overflow: clip;
-    padding-block: calc(var(--section-pad) * 0.7);
+    padding-block: calc(var(--section-pad) * 0.7) calc(var(--section-pad) * 0.9);
   }
 
 
@@ -58,7 +59,7 @@ const [setup, payoff] = titleParts(badges.title);
   .grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-10) var(--space-10);
+    gap: var(--space-12) var(--space-10);
     margin-top: var(--space-14);
     padding: 0;
     list-style: none;

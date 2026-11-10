@@ -8,8 +8,7 @@
 export const links = {
   game: 'https://aka.ms/decision-point/play', // the game's public short link
   azureFree: 'https://azure.microsoft.com/free',
-  repo: '{{repo_url}}',
-  walkthrough: '{{repo_url}}#quickstart',
+  repo: 'https://aka.ms/decision-point/build-repo', // the customer's short link (2026-11-04)
   horizonDbDocs: 'https://learn.microsoft.com/en-us/azure/horizondb/',
   aiCapabilities: 'https://learn.microsoft.com/en-us/azure/horizondb/ai/ai-overview', // SELF-SOURCED, was {{ai_capabilities_url}}
   // SELF-SOURCED, was {{learning_path_url}}. The AI path; the general one is /training/paths/microsoft-learn-azure-database-for-postgresql/

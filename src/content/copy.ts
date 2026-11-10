@@ -19,10 +19,10 @@ export const meta = {
 
 export const nav = {
   brand: 'Decision Point',
-  // Each label is its section's title in short form, in page order (shortened to fit)
+  // Each label is its section's title in short form, in page order (shortened to fit). The customer cut Badges
+  // from the nav (2026-11-04); the section stays.
   links: [
     { label: 'How it works', href: '#how' },
-    { label: 'Badges', href: '#badges' },
     { label: 'Build', href: '#build-steps' },
     { label: 'Resources', href: '#resources' },
   ],
@@ -34,17 +34,15 @@ export const hero = {
   titleLine1: 'Play the game.',
   titleLine2: 'Ship the agent.',
   subhead:
-    "A 10–15 minute browser game: you're the lead engineer as Basket IQ races to launch. Make real architecture calls, watch your Launch Readiness score move, then take your build to a real repo on Azure HorizonDB.",
+    "You're the lead engineer as Basket IQ races to launch. Make real architecture calls, watch your Launch Readiness score move, then take your build to Azure HorizonDB.",
   primary: 'Play Decision Point',
   // The hero's secondary button
   build: '▶ Build the agent',
-  // The brief's ribbon as three facts, and the slot for the client's preview animation
-  facts: ['No install', 'No sign-up', 'Runs in Chrome, Edge, Safari and Firefox'],
-  artSlot: 'Client asset: preview animation',
-  artSlotNote: 'placeholder',
-  artLabel: 'Relational rows stream out and become embeddings, which an index joins into one ranked path.',
-  pause: 'Pause animation',
-  play: 'Play animation',
+  // The brief's ribbon as facts, under both the copy and the video; the game's length leads (customer, 2026-11-04)
+  facts: ['10–15 minute browser game', 'No install', 'No sign-up', 'Runs in Chrome, Edge, Safari and Firefox'],
+  // The client's preview video (2026-11-04). Its player's controls carry Media Chrome's own labels.
+  videoLabel:
+    'Game preview: Basket IQ recommends the wrong item, the player picks a fix, and the Launch Readiness score climbs.',
 } as const;
 
 export const how = {
@@ -113,7 +111,7 @@ export const build = {
     {
       title: 'Start Azure free.',
       body: 'Free credit for 30 days, plus 12 months of free monthly amounts on 60+ services. New Azure customers only.',
-      button: 'Start Azure free — $200 credit',
+      button: 'Start Azure free',
       link: 'azureFree',
       helper: 'No card charge unless you upgrade. Spending protection is on by default.',
     },
@@ -127,9 +125,9 @@ export const build = {
     {
       title: 'Build in VS Code.',
       body: 'Plan on 60–90 minutes of hands-on time.',
-      button: 'Read the walkthrough',
-      link: 'walkthrough',
-      helper: 'Uses the VS Code PostgreSQL extension with GitHub Copilot Agent mode for schema and query authoring.',
+      button: 'Download the extension',
+      link: 'vscodeExtension',
+      helper: '',
     },
   ],
 } as const;
@@ -137,7 +135,7 @@ export const build = {
 export const guidance = {
   title: 'Stay inside the $200',
   items: [
-    { lead: 'Provision a 2-vCore cluster.', body: "It's the smallest HorizonDB size and costs ~$0.44/hour." },
+    { lead: 'Provision a 2-vCore cluster.', body: "It's the smallest HorizonDB size." },
     {
       lead: 'Run the cluster in short sessions.',
       body: 'Delete the cluster between build sessions; storage costs a few cents per GiB per month.',
@@ -174,7 +172,8 @@ export const resources = {
       items: [
         { label: 'PostgreSQL Hub', link: 'postgresHub' },
         { label: 'Azure PostgreSQL Tech Community', link: 'techCommunity' },
-        { label: 'GitHub Discussions on postgres-hub', link: 'discussions' },
+        // The tail never breaks, so a wrapped label reads "GitHub Discussions" / "on postgres-hub" (customer, 2026-11-06)
+        { label: 'GitHub Discussions', tail: 'on postgres-hub', link: 'discussions' },
       ],
     },
   ],

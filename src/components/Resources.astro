@@ -34,6 +34,7 @@ const [setup, payoff] = titleParts(resources.title);
                       <a class="tile" href={hrefFor(href)} target={isResolved(href) ? '_blank' : undefined} rel={isResolved(href) ? 'noopener' : undefined} data-cta={`resource-${item.link}`} data-pending={isResolved(href) ? undefined : ''}>
                         <span class="t">
                           {item.label}
+                          {'tail' in item && <> <span class="tail">{item.tail}</span></>}
                           {isResolved(href) && <span class="sr-only"> {assets.newTab}</span>}
                         </span>
                         <Icon name="arrow-up-right" size={20} class="go" />
@@ -165,6 +166,10 @@ const [setup, payoff] = titleParts(resources.title);
     transition: text-decoration-color var(--dur-state) var(--ease-state);
   }
 
+  .tail {
+    white-space: nowrap;
+  }
+
   .note {
     display: flex;
     align-items: center;
@@ -174,14 +179,21 @@ const [setup, payoff] = titleParts(resources.title);
     color: var(--color-muted);
   }
 
-  /* The arrows stay grey; only the column-head chips carry the hues */
+  /* The arrows rest grey and turn white with the title's underline on hover; only the column-head chips carry the
+     hues */
   .tile :global(.go) {
     color: var(--color-muted);
-    transition: translate var(--dur-state) var(--ease-out);
+    transition:
+      color var(--dur-state) var(--ease-state),
+      translate var(--dur-state) var(--ease-out);
   }
 
   a.tile:is(:hover, :focus-visible) {
     background: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface-2));
+  }
+
+  a.tile:is(:hover, :focus-visible) :global(.go) {
+    color: var(--color-ink);
   }
 
   a.tile:is(:hover, :focus-visible) .t {

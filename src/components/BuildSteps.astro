@@ -142,23 +142,32 @@ const stack = fragment();
     color: var(--color-numeral);
   }
 
+  /* One rhythm whatever a step holds: the title, its line 0.6rem under it, the button --space-5 under whichever of
+     the two comes last, and the note --space-3 under the button. Margins only ever sit on top, so nothing stacks. */
+  .content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .content h3 {
-    margin: 0.3rem 0 0.6rem;
+    margin: 0.3rem 0 0;
     font-size: var(--text-card-title);
     font-weight: var(--weight-semibold);
     letter-spacing: -0.015em;
   }
 
-  .content :global(.btn) {
+  .content > p {
+    margin-top: 0.6rem;
+  }
+
+  .content > :global(.btn),
+  .content > .pending-line {
     margin-top: var(--space-5);
   }
 
-  .content .pending-line {
-    margin-top: var(--space-4);
-  }
-
-  .content .helper {
-    margin-top: 0.9rem;
+  .content > .helper {
+    margin-top: var(--space-3);
   }
 
   /* The $200 call-out: the figure sits in a near-black well at the head of the raised card. Text stays on dark for

@@ -162,44 +162,6 @@ code {
   border-color: color-mix(in srgb, var(--chip-hue) 50%, transparent);
 }
 
-/* The motion toggle: the hero art's pause/play control (WCAG 2.2.2). The incident set has none, an accepted exception. */
-.motion-toggle {
-  width: 2.75rem;
-  height: 2.75rem;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-line-strong);
-  background: var(--color-bg);
-  color: var(--color-muted);
-  cursor: pointer;
-  transition:
-    color var(--dur-state) var(--ease-state),
-    border-color var(--dur-state) var(--ease-state);
-}
-
-.motion-toggle:hover {
-  color: var(--color-ink);
-  border-color: var(--color-muted);
-}
-
-.motion-toggle[hidden] {
-  display: none;
-}
-
-.motion-toggle > .icon {
-  grid-area: 1 / 1;
-}
-
-.motion-toggle .when-paused,
-.motion-toggle[aria-pressed='true'] .when-playing {
-  display: none;
-}
-
-.motion-toggle[aria-pressed='true'] .when-paused {
-  display: block;
-}
-
 /* Section titles: the game's display face in two tones, the setup in white on its own line, the payoff in the blue
    (--title-blue, clipped to the text) with a soft glow. One size for every section (--text-h2). */
 .title {

@@ -58,18 +58,6 @@
   --color-amd: #ed1c24;
   --color-amd-text: #ff8a8f; /* 9.2:1 */
 
-  /* Hero art (read once by the canvas script as --art-<name>) */
-  --art-row-front: #0f1a2b;
-  --art-row-top: #1a2b44;
-  --art-row-side: #0b1422;
-  --art-row-edge: rgb(124 192 255 / 0.32);
-  --art-cell: #20375a;
-  --art-cell-hot: #4a8fd8;
-  --art-point: #7cc0ff;
-  --art-link: rgb(124 192 255 / 0.08);
-  --art-path: var(--color-hi);
-  --art-node-fill: var(--color-bg);
-
   /* Incident illustrations (2.5D slabs) */
   --illo-top: #1a2b44;
   --illo-front: #0f1a2b;
