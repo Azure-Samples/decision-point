@@ -3,7 +3,7 @@
  * Decorative only: every component renders them aria-hidden. No data, no labels other than the p95 tag.
  *
  * Faces are classed `it` (top), `il` (left, the +y face) and `ir` (right, the +x face); the group class picks the
- * ink (see the illustration CSS in HowItWorks.astro and the inks in tokens.css).
+ * ink (the inks are in global.css; the motion is in HowItWorks.astro).
  */
 import { fitIso, makeIso, piece, type Iso, type P3, type Piece } from './iso';
 
@@ -155,11 +155,10 @@ export function sceneSurge(): Scene {
   const pieces = xs.map((x, i) => {
     const down = (h: number) => h - H;
     const route: [number, number, number, number][] = [[0, 0, 0, down(rest[i])], [30, 0, 0, down(peak[i])], [58, 0, 0, down(rest[i])], [100, 0, 0, down(rest[i])]];
-    const p = piece(iso, STAGE, `ill-s${i}`, iso.box(x, Y, 0.3, W, D, H, 'bar'), corners([x, Y, 0.3, W, D, H]), route, {
+    return piece(iso, STAGE, `ill-s${i}`, iso.box(x, Y, 0.3, W, D, H, 'bar'), corners([x, Y, 0.3, W, D, H]), route, {
       notches: [[x, Y, W, D, 0.3]],
       style: `--i:${i}`,
     });
-    return p;
   });
   return { back, front, pieces };
 }

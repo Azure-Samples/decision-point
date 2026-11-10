@@ -4,8 +4,7 @@ import type { ImageMetadata } from 'astro';
 import { badges } from '../content/copy';
 import { titleParts } from '../lib/inline';
 
-// The customer's badge art, as supplied: never recoloured, filtered, ringed or masked. Each file is matched to its badge
-// by name (the mapping was inferred and needs the customer's confirmation).
+// The badge art, as supplied: never recoloured, filtered, ringed or masked. Each file is matched to its badge by name.
 const art = import.meta.glob<{ default: ImageMetadata }>('../assets/badges/*.png', { eager: true });
 const slug = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
 const artFor = (name: string) => {
@@ -13,8 +12,6 @@ const artFor = (name: string) => {
   if (!hit) throw new Error(`No badge art for ${name}`);
   return hit.default;
 };
-// How to earn each badge: the Titan's line is the brief's caption, moved under its badge
-const earn = badges.earn.map((line) => line ?? badges.titan);
 const [setup, payoff] = titleParts(badges.title);
 ---
 
@@ -27,14 +24,14 @@ const [setup, payoff] = titleParts(badges.title);
     {/* Six badges as icon + heading rows on one grid */}
     <ul class="grid">
       {
-        badges.items.map((b, i) => (
+        badges.items.map((b) => (
           <li class="badge rv">
-            {/* The art is the badge itself, so its alt is the badge's name. Drawn at 80px (2x density for sharp screens). Eager at low priority: six
-                files of 3–12KB, so the set never pops in mid-scroll. */}
+            {/* The art is the badge itself, so its alt is the badge's name. Rendered at 80px with a 2x file for sharp
+                screens. Eager at low priority: six files of 3–12KB, so the set never pops in mid-scroll. */}
             <span class="art-box"><Image class="art" src={artFor(b.name)} alt={b.name} width={80} height={80} densities={[1, 2]} format="webp" quality={90} loading="eager" fetchpriority="low" decoding="async" /></span>
             <span class="text">
               <span class="name">{b.name}</span>
-              <span class="earn">{earn[i]}</span>
+              <span class="earn">{b.earn}</span>
             </span>
           </li>
         ))
@@ -50,7 +47,6 @@ const [setup, payoff] = titleParts(badges.title);
     overflow: clip;
     padding-block: calc(var(--section-pad) * 0.7) calc(var(--section-pad) * 0.9);
   }
-
 
   .intro {
     margin-top: var(--space-6);
@@ -73,11 +69,21 @@ const [setup, payoff] = titleParts(badges.title);
     gap: var(--space-5);
   }
 
-  /* The art is busy and saturated, so it is set small enough for the six to read as one calm set */
+  /* Every badge sits in the same plain tile, with no glow. The art is busy and saturated, so it is set small enough
+     for the six to read as one calm set. */
+  .art-box {
+    display: grid;
+    place-items: center;
+    width: 6rem;
+    height: 6rem;
+    margin-top: -0.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+  }
+
   .art {
-    width: 5rem;
-    height: 5rem;
-    margin-top: -0.25rem;
+    width: 4.25rem;
+    height: 4.25rem;
   }
 
   .text {
@@ -102,12 +108,6 @@ const [setup, payoff] = titleParts(badges.title);
     text-wrap: balance;
   }
 
-  /* The AMD Transaction Titan is a badge like the others: no AMD red */
-  .art-box {
-    display: grid;
-    place-items: center;
-  }
-
   @media (max-width: 64rem) {
     .grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -120,10 +120,14 @@ const [setup, payoff] = titleParts(badges.title);
       gap: var(--space-8);
     }
 
-    .art {
-      width: 4rem;
-      height: 4rem;
+    .art-box {
+      width: 4.75rem;
+      height: 4.75rem;
     }
 
+    .art {
+      width: 3.25rem;
+      height: 3.25rem;
+    }
   }
 </style>

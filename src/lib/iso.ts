@@ -31,7 +31,6 @@ export interface Iso {
   corners: (x: number, y: number, z: number, w: number, d: number, h: number) => P3[];
   /** A screen offset for a move of (dx, dy, dz) in iso units */
   delta: (dx: number, dy: number, dz?: number) => [number, number];
-  s: number;
 }
 
 const f = (n: number) => Math.round(n * 100) / 100;
@@ -58,7 +57,7 @@ export function makeIso(ox: number, oy: number, s: number): Iso {
     return { x: f(x), y: f(y), w: f(Math.max(...xs) + pad - x), h: f(Math.max(...ys) + pad - y) };
   };
   const delta = (dx: number, dy: number, dz = 0): [number, number] => [(dx - dy) * COS30 * s, (dx + dy) * SIN30 * s - dz * s];
-  return { pt, box, poly, line, bbox, corners, delta, s };
+  return { pt, box, poly, line, bbox, corners, delta };
 }
 
 /**

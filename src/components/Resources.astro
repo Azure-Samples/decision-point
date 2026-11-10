@@ -2,12 +2,12 @@
 import Icon from './Icon.astro';
 import DotField from './DotField.astro';
 import { resources, assets } from '../content/copy';
-import { links, type LinkKey } from '../content/links';
-import { hrefFor, isResolved, looksLive, titleParts } from '../lib/inline';
+import { links } from '../content/links';
+import { titleParts } from '../lib/inline';
 import type { IconName } from '../lib/icons';
 
-// No card inside a card: unframed columns, each headed by its hued chip. Link tiles lift, underline their title and
-// lean their arrow up and out; a tile without a URL says so and stays still.
+// Three unframed columns, each headed by its hued chip. On hover a tile lifts, takes a faint wash of its column's hue,
+// underlines its title and leans its arrow up and out.
 const colIcons: IconName[] = ['book', 'tools', 'users'];
 const colHues = ['--hue-blue', '--hue-amber', '--hue-violet'];
 const [setup, payoff] = titleParts(resources.title);
@@ -16,7 +16,7 @@ const [setup, payoff] = titleParts(resources.title);
 <section class="section centred utility-pad band" id="resources" data-reveal aria-labelledby="resources-title">
   <DotField light={['topglow']} />
   <div class="wrap">
-    <h2 class="title utility rv-h" id="resources-title">
+    <h2 class="title rv-h" id="resources-title">
       <span class="t-quiet">{setup}</span> {payoff}
     </h2>
     <div class="cols">
@@ -25,31 +25,18 @@ const [setup, payoff] = titleParts(resources.title);
           <div class="col rv" style={`--chip-hue: var(${colHues[c]})`}>
             <h3><span class="icon-chip hued" aria-hidden="true"><Icon name={colIcons[c]} size={20} /></span>{col.heading}</h3>
             <ul>
-              {col.items.map((item) => {
-                const href = links[item.link as LinkKey];
-                return (
-                  <li>
-                    {/* PENDING links look live for the preview (data-pending cancels the click); restore inactive styling before launch */}
-                    {looksLive(href) ? (
-                      <a class="tile" href={hrefFor(href)} target={isResolved(href) ? '_blank' : undefined} rel={isResolved(href) ? 'noopener' : undefined} data-cta={`resource-${item.link}`} data-pending={isResolved(href) ? undefined : ''}>
-                        <span class="t">
-                          {item.label}
-                          {'tail' in item && <> <span class="tail">{item.tail}</span></>}
-                          {isResolved(href) && <span class="sr-only"> {assets.newTab}</span>}
-                        </span>
-                        <Icon name="arrow-up-right" size={20} class="go" />
-                      </a>
-                    ) : (
-                      <div class="tile soon">
-                        <span>
-                          <span class="t">{item.label}</span>
-                          <span class="note"><Icon name="clock" size={14} />{resources.pending}</span>
-                        </span>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
+              {col.items.map((item) => (
+                <li>
+                  <a class="tile" href={links[item.link]} target="_blank" rel="noopener" data-cta={`resource-${item.link}`}>
+                    <span class="t">
+                      {item.label}
+                      {'tail' in item && <> <span class="tail">{item.tail}</span></>}
+                      <span class="sr-only"> {assets.newTab}</span>
+                    </span>
+                    <Icon name="arrow-up-right" size={20} class="go" />
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         ))
@@ -78,9 +65,8 @@ const [setup, payoff] = titleParts(resources.title);
     }
   }
 
-
-  /* Three unframed columns on one grid, split by vertical hairlines; rows are shared across them (subgrid), so every
-     tile lines up */
+  /* Three unframed columns on one grid, with no dividers; rows are shared across them (subgrid), so every tile lines
+     up */
   .cols {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -104,10 +90,6 @@ const [setup, payoff] = titleParts(resources.title);
 
   .col:last-child {
     padding-right: 0;
-  }
-
-  .col + .col {
-    border-left: 1px solid var(--color-line);
   }
 
   .col ul {
@@ -136,7 +118,7 @@ const [setup, payoff] = titleParts(resources.title);
     color: var(--color-ink);
   }
 
-  /* Every tile is the raised Hub tile; only a tile with a link moves */
+  /* Tiles: empty, with a faint outline */
   .tile {
     display: flex;
     align-items: center;
@@ -145,13 +127,15 @@ const [setup, payoff] = titleParts(resources.title);
     height: 100%;
     min-height: 4.5rem;
     padding: 1rem var(--space-5);
+    border: 1px solid rgb(246 247 249 / 0.08);
     border-radius: var(--radius-sm);
-    background: var(--color-surface-2);
+    background: transparent;
     box-shadow: inset 0 0 0 1px var(--color-line-strong);
     color: var(--color-ink);
     text-decoration: none;
     transition:
       background-color var(--dur-state) var(--ease-state),
+      border-color var(--dur-state) var(--ease-state),
       translate var(--dur-state) var(--ease-out);
   }
 
@@ -170,17 +154,7 @@ const [setup, payoff] = titleParts(resources.title);
     white-space: nowrap;
   }
 
-  .note {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin-top: 0.3rem;
-    font-size: 0.875rem;
-    color: var(--color-muted);
-  }
-
-  /* The arrows rest grey and turn white with the title's underline on hover; only the column-head chips carry the
-     hues */
+  /* The arrows rest grey and turn white on hover */
   .tile :global(.go) {
     color: var(--color-muted);
     transition:
@@ -188,34 +162,29 @@ const [setup, payoff] = titleParts(resources.title);
       translate var(--dur-state) var(--ease-out);
   }
 
-  a.tile:is(:hover, :focus-visible) {
-    background: color-mix(in srgb, var(--color-ink) 6%, var(--color-surface-2));
+  /* Hover: a faint wash of the column's hue from the top left (the column chip's --chip-hue: Learn blue, Build amber,
+     Community violet), and the title's underline in the same hue */
+  .tile:is(:hover, :focus-visible) {
+    background: radial-gradient(130% 140% at 0% 0%, color-mix(in srgb, var(--chip-hue) 16%, transparent), transparent 62%);
+    border-color: color-mix(in srgb, var(--chip-hue) 28%, transparent);
   }
 
-  a.tile:is(:hover, :focus-visible) :global(.go) {
+  .tile:is(:hover, :focus-visible) :global(.go) {
     color: var(--color-ink);
   }
 
-  a.tile:is(:hover, :focus-visible) .t {
-    text-decoration-color: var(--color-ink);
+  .tile:is(:hover, :focus-visible) .t {
+    text-decoration-color: var(--chip-hue);
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    a.tile:is(:hover, :focus-visible) {
+    .tile:is(:hover, :focus-visible) {
       translate: 0 calc(var(--move-nudge) * -1);
     }
 
-    a.tile:is(:hover, :focus-visible) :global(.go) {
+    .tile:is(:hover, :focus-visible) :global(.go) {
       translate: 2px -2px;
     }
-  }
-
-  .soon {
-    color: var(--color-body);
-  }
-
-  .soon .t {
-    font-weight: var(--weight-medium);
   }
 
   @media (max-width: 64rem) {
@@ -237,10 +206,8 @@ const [setup, payoff] = titleParts(resources.title);
       padding-inline: 0;
     }
 
-    /* Stacked, the hairline between columns turns horizontal */
+    /* Stacked, the columns sit further apart */
     .col + .col {
-      border-left: 0;
-      border-top: 1px solid var(--color-line);
       padding-top: var(--space-10);
     }
   }

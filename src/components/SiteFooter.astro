@@ -1,8 +1,7 @@
 ---
-import Icon from './Icon.astro';
 import { footer, assets } from '../content/copy';
-import { links, type LinkKey } from '../content/links';
-import { hrefFor, isFilled, isResolved, looksLive, ANALYTICS_UI } from '../lib/inline';
+import { links } from '../content/links';
+import { ANALYTICS_UI } from '../lib/inline';
 ---
 
 <footer class="site-footer">
@@ -10,26 +9,18 @@ import { hrefFor, isFilled, isResolved, looksLive, ANALYTICS_UI } from '../lib/i
     <p>{footer.line}</p>
     <ul>
       {
-        footer.links.map((l) => {
-          const href = links[l.link as LinkKey];
-          return (
-            <li>
-              {/* Preview only: pending links render live; restore inactive styling before launch */}
-              {looksLive(href) ? (
-                <a class="text-link" href={hrefFor(href)} target={isResolved(href) ? '_blank' : undefined} rel={isResolved(href) ? 'noopener' : undefined} data-pending={isResolved(href) ? undefined : ''}>
-                  {l.label}
-                  {isResolved(href) && <span class="sr-only"> {assets.newTab}</span>}
-                </a>
-              ) : (
-                <span class="pend" role="link" aria-disabled="true">{l.label}<Icon name="clock" size={12} /></span>
-              )}
-            </li>
-          );
-        })
+        footer.links.map((l) => (
+          <li>
+            <a class="text-link" href={links[l.link]} target="_blank" rel="noopener">
+              {l.label}
+              <span class="sr-only"> {assets.newTab}</span>
+            </a>
+          </li>
+        ))
       }
       {ANALYTICS_UI && <li><button type="button" class="text-link" data-consent-open>{footer.cookies}</button></li>}
     </ul>
-    {isFilled(footer.legal) && <p class="legal">{footer.legal}</p>}
+    {footer.legal && <p class="legal">{footer.legal}</p>}
   </div>
 </footer>
 

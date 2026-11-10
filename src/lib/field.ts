@@ -1,5 +1,5 @@
 /**
- * The Game edition's dot field, drawn at build time from fixed seeds so every build is identical.
+ * The dot field behind the sections, drawn at build time from fixed seeds so every build is identical.
  *   - dotTile: one 360px square of dots on a 15px grid, each at its own faint opacity, with brighter runs and the odd
  *     cyan or violet node. Served as /field/dots.svg and, every dot brighter by the same factor, /field/dots-lit.svg
  *     (src/pages/field/[tile].svg.ts), so the pointer's lit copy lines up with the resting one dot for dot.

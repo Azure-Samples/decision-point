@@ -5,9 +5,7 @@ import Icon from './Icon.astro';
 import DotField from './DotField.astro';
 import { hero } from '../content/copy';
 import { links } from '../content/links';
-import { withoutGlyph } from '../lib/inline';
-
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+import { withBase } from '../lib/inline';
 ---
 
 <section class="hero" aria-labelledby="hero-title">
@@ -21,17 +19,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     <div class="act">
       <div class="ctas">
         <Button href={links.game} variant="primary" cta="launch-hero" icon="player-play">{hero.primary}</Button>
-        <Button href="#build-steps" cta="build-hero" icon="terminal-2">{withoutGlyph(hero.build)}</Button>
+        <Button href="#build-steps" cta="build-hero" icon="terminal-2">{hero.build}</Button>
       </div>
     </div>
-    {/* The client's game preview in a full player (Media Chrome: the browser's own <video>, with controls we place and
-        style). Without JS it keeps the browser's controls; the page script starts it muted (no browser allows sound
-        before a click) and leaves it still under reduced motion. Analytics counts play/pause and fullscreen only (one
-        name each, src/lib/cta.ts); skipping and sound aren't tracked. */}
+    {/* The game preview in a full player (Media Chrome: the browser's own <video>, with controls we place and style).
+        Without JS it keeps the browser's controls; the page script starts it muted (no browser allows sound before a
+        click) and leaves it still under reduced motion. Analytics counts play/pause and fullscreen only (one name
+        each, src/lib/cta.ts); skipping and sound aren't tracked. */}
     <figure class="art">
       <media-controller class="player" autohide="2" defaultstreamtype="on-demand">
-        <video slot="media" id="hero-video" controls muted loop playsinline preload="metadata" poster={`${base}/video/decision-point-preview-poster.jpg`} aria-label={hero.videoLabel}>
-          <source src={`${base}/video/decision-point-preview.mp4`} type="video/mp4" />
+        <video slot="media" id="hero-video" controls muted loop playsinline preload="metadata" poster={withBase('video/decision-point-preview-poster.jpg')} aria-label={hero.videoLabel}>
+          <source src={withBase('video/decision-point-preview.mp4')} type="video/mp4" />
         </video>
         <media-control-bar class="bar">
           <media-play-button data-cta="video-play-pause"></media-play-button>
@@ -73,9 +71,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 33.5rem) minmax(0, 1fr);
-    /* The grid fills the hero: the trust strip stands on the hero's floor, and the copy and the video sit centred between
-       the hero's top and the strip. The two empty rows take the same share of whatever height is left (at least
-       --space-16 each); there's no top padding, so the space above the content equals the space below it. */
+    /* The grid fills the hero: the facts strip stands on the hero's floor, and the copy and the video sit centred
+       between the hero's top and the strip. The two empty rows take the same share of whatever height is left (at
+       least --space-16 each); there's no top padding, so the space above the content equals the space below it. */
     align-self: stretch;
     grid-template-rows: minmax(var(--space-16), 1fr) auto auto minmax(var(--space-16), 1fr) auto;
     grid-template-areas:
@@ -90,12 +88,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     padding-block: 0 var(--space-16);
   }
 
+  /* The copy column is a container: the title's size follows its width */
   .copy {
     grid-area: copy;
-  }
-
-  .art {
-    grid-area: art;
+    align-self: end;
+    container-type: inline-size;
   }
 
   .act {
@@ -104,17 +101,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     margin-top: var(--space-8);
   }
 
-  .copy {
-    align-self: end;
-  }
-
-  /* Two lines, one sentence each, from tablet up. The size follows the copy column (a container), so the longer
-     sentence always fits its line: 100% of the column over its width in em. */
-  .copy {
-    container-type: inline-size;
-  }
-
-  /* The display face in two tones, like every title: white, then the blue (--line-em: Orbitron's longer line, in em) */
+  /* Two lines, one sentence each, in the display face and two tones like every title: white, then the blue. The size
+     follows the copy column, so the longer sentence always fits its line: 100% of the column over that line's width
+     in em (--line-em). */
   .hero-title {
     --line-em: 11;
     font-family: var(--font-display);
@@ -132,14 +121,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   .hero-title > .line2 {
+    display: block;
     background: var(--title-blue);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-  }
-
-  .hero-title .line2 {
-    display: block;
   }
 
   .lead {
@@ -176,7 +162,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     }
   }
 
-  /* The trust strip: centred on the page at the foot of the hero, so it reads as the hero's footing rather than a
+  /* The facts strip: centred on the page at the foot of the hero, so it reads as the hero's footing rather than a
      caption under the video, its four facts spaced well apart; one line on desktop (it wraps on narrower screens) */
   .facts {
     grid-area: facts;
@@ -203,8 +189,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     color: var(--color-hi);
   }
 
-  /* The client's 16:9 preview in a near-black well (the same well as the incident windows), framed and contained */
+  /* The 16:9 preview in a near-black well (the same well as the incident windows), framed and contained. A container,
+     so the player can drop controls when the frame is narrow. */
   .art {
+    grid-area: art;
     position: relative;
     aspect-ratio: 16 / 9;
     margin: 0;
@@ -213,14 +201,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     border: 1px solid var(--color-line-strong);
     border-radius: var(--radius-md);
     box-shadow: var(--edge-highlight), var(--shadow-card);
+    container-type: inline-size;
   }
 
   /* The player fills the frame. Its controls take the site's type, ink and highlight: a dark fade along the bottom
      instead of a solid bar, the played part of the timeline and the volume in the highlight, and the site's focus ring.
      They hide after 2s without a pointer and come back on hover, focus or tap. */
-  .art {
-    container-type: inline-size;
-  }
 
   .player {
     display: block;
@@ -378,10 +364,9 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
       width: 100%;
       justify-content: center;
     }
-
   }
 
-  /* 320px: the labels and the trust strip may wrap */
+  /* 320px: the labels and the facts strip may wrap */
   @media (max-width: 22.5rem) {
     .ctas :global(.btn) {
       font-size: var(--text-xs);

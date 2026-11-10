@@ -45,9 +45,25 @@ const logos = [
 
 <style>
   .amd {
+    position: relative;
+    isolation: isolate;
     padding-block: var(--section-pad);
-    background: linear-gradient(180deg, rgb(237 28 36 / 0.09), var(--color-amd-bg) 40%, var(--color-bg));
-    border-top: 2px solid var(--color-amd);
+  }
+
+  /* The band's ground: Azure on the left running to AMD red on the right. It fades in and out at the top and bottom,
+     so the band has no hard edge. */
+  .amd::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(60% 85% at 0% 45%, rgb(15 108 189 / 0.26), transparent 70%),
+      radial-gradient(60% 85% at 100% 45%, rgb(237 28 36 / 0.2), transparent 70%),
+      linear-gradient(90deg, rgb(15 108 189 / 0.08), rgb(110 60 150 / 0.06) 50%, rgb(237 28 36 / 0.07));
+    -webkit-mask: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+    mask: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+    pointer-events: none;
   }
 
   /* The content paints above the dot field */

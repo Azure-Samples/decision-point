@@ -1,44 +1,26 @@
 ---
 import Icon from './Icon.astro';
 import type { IconName } from '../lib/icons';
-import { isResolved, PREVIEW_PENDING_LIVE } from '../lib/inline';
 import { assets } from '../content/copy';
 
 interface Props {
   href: string;
   variant?: 'primary' | 'ghost';
-  size?: 'md' | 'lg';
-  /** Analytics hook: every CTA carries data-cta. */
+  /** Analytics hook: every CTA carries data-cta (its names are in src/lib/cta.ts). */
   cta: string;
   icon?: IconName;
 }
 
-const { href, variant = 'ghost', size = 'md', cta, icon } = Astro.props;
-const external = isResolved(href);
-const internal = href.startsWith('#');
-// PENDING: for the preview, a control with no URL yet renders live (href="#", data-pending; the page script cancels
-// the click). Restore inactive styling before launch.
-const previewLive = !external && !internal && PREVIEW_PENDING_LIVE;
-const classes = ['btn', `btn-${variant}`, size === 'lg' && 'btn-lg'];
+const { href, variant = 'ghost', cta, icon } = Astro.props;
+// In-page links (#…) stay in the tab; every other link opens in a new one
+const external = !href.startsWith('#');
 ---
 
-{
-  external || internal || previewLive ? (
-    <a class:list={classes} href={previewLive ? '#' : href} data-cta={cta} data-pending={previewLive ? '' : undefined} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>
-      {icon && <Icon name={icon} size={16} />}
-      <slot />
-      {external && <span class="sr-only"> {assets.newTab}</span>}
-    </a>
-  ) : (
-    /* The target doesn't exist yet ({{placeholder}}): never a dead link */
-    <span class:list={[...classes, 'is-pending']} role="link" aria-disabled="true" data-cta={cta}>
-      {icon && <Icon name={icon} size={16} />}
-      <slot />
-      {/* The pending cue (one language page-wide): a solid edge and a small clock, never a faded or dashed control */}
-      <Icon name="clock" size={14} class="pend-mark" />
-    </span>
-  )
-}
+<a class:list={['btn', `btn-${variant}`]} href={href} data-cta={cta} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined}>
+  {icon && <Icon name={icon} size={16} />}
+  <slot />
+  {external && <span class="sr-only"> {assets.newTab}</span>}
+</a>
 
 <style>
   .btn {
@@ -62,7 +44,7 @@ const classes = ['btn', `btn-${variant}`, size === 'lg' && 'btn-lg'];
       transform var(--dur-press) var(--ease-state);
   }
 
-  a.btn:active {
+  .btn:active {
     transform: scale(0.97);
   }
 
@@ -72,11 +54,11 @@ const classes = ['btn', `btn-${variant}`, size === 'lg' && 'btn-lg'];
     box-shadow: var(--shadow-cta);
   }
 
-  a.btn-primary:hover {
+  .btn-primary:hover {
     background: var(--color-accent-hover);
   }
 
-  a.btn-primary:active {
+  .btn-primary:active {
     background: var(--color-accent-press);
   }
 
@@ -86,47 +68,13 @@ const classes = ['btn', `btn-${variant}`, size === 'lg' && 'btn-lg'];
     border: 1.5px solid var(--color-control-border);
   }
 
-  a.btn-ghost:hover {
+  .btn-ghost:hover {
     background: var(--color-hover-wash);
-  }
-
-  /* The closing call to action's size, one step up */
-  .btn-lg {
-    min-height: 3.75rem;
-    padding-inline: var(--space-8);
-    font-size: 1rem;
-  }
-
-  /* Pending keeps the control's weight (a primary stays the strongest thing on screen); the cue is a solid inner edge
-     and a clock, never dashed or dotted, and nothing changes on hover */
-  .is-pending {
-    cursor: not-allowed;
-  }
-
-  .btn-primary.is-pending {
-    box-shadow:
-      var(--shadow-cta),
-      inset 0 0 0 1px var(--color-accent),
-      inset 0 0 0 2px var(--pending-inset);
-  }
-
-  .btn-ghost.is-pending {
-    border-color: var(--pending-border);
-  }
-
-  .is-pending :global(.pend-mark) {
-    margin-left: var(--space-1);
-    opacity: 0.85;
   }
 
   @media (max-width: 40rem) {
     .btn {
       width: 100%;
-    }
-
-    /* Phones: the large button keeps its height but not its side padding, so its label stays on one line */
-    .btn-lg {
-      padding-inline: var(--space-4);
     }
   }
 </style>

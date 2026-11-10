@@ -1,11 +1,13 @@
 /**
- * Analytics names for every CTA: each click is sent twice, once as its group ("azure-free") so every
- * copy of a button counts as one, and once as group @ placement ("azure-free @ build-steps") for the drill-down. Keyed by the
- * control's data-cta. The flip cards and the sound switch count too: each card's two sides, and the switch as the action
- * it just took (mute or unmute).
+ * Analytics names for every CTA: each click is sent twice, once as its group ("azure-free") so every copy of a button
+ * counts as one, and once as group @ placement ("azure-free @ build-steps") for the drill-down. Keyed by the control's
+ * data-cta. The flip cards and the sound switch count too: each card's two sides, and the switch as the action it just
+ * took (mute or unmute).
  *
- * The hero video sends one name per click and no placement (owner, 2026-11-10: keep Clarity's smart events few): play and
- * pause are one event, fullscreen the other. Its skip and sound controls carry no data-cta, so they send nothing.
+ * The hero video sends one name per click and no placement, to keep Clarity's smart events few: play and pause are one
+ * event, fullscreen the other. Its skip and sound controls carry no data-cta, so they send nothing.
+ *
+ * These names are what the Clarity project has already recorded: renaming one splits its history.
  */
 const CTA: Record<string, [group: string, placement: string | null]> = {
   'launch-hero': ['launch-game', 'hero'],
