@@ -5,7 +5,8 @@
 // Consent mode v2: the tag loads at once with consent denied (Clarity's no-consent mode: a new ID per page view, no cookies),
 // and only an Accept upgrades it to granted. The choice is kept in localStorage for nine months (Clarity's own validity).
 // A browser sending Global Privacy Control is treated as a decline and never asked. Each CTA click goes out as two Clarity
-// events, its group and group @ placement (src/lib/cta.ts), and every session is tagged with the version it saw.
+// events, its group and group @ placement (src/lib/cta.ts; the hero video's go as the group alone), and every session is
+// tagged with the version it saw.
 import { assets, consent } from '../content/copy';
 import { links } from '../content/links';
 import { ANALYTICS_UI, CLARITY_ID } from '../lib/inline';
@@ -87,12 +88,13 @@ import { version } from '../../package.json';
       clarity('set', 'version', box.dataset.version ?? 'site');
 
       // Every CTA click, links still pending included (the click still shows intent): the group, then group @ placement
+      // (the hero video's names have no placement and go alone)
       document.addEventListener('click', (e) => {
         const id = (e.target as Element).closest<HTMLElement>('[data-cta]')?.dataset.cta;
         if (!id) return;
         const [group, placement] = ctaNames(id);
         clarity('event', group);
-        clarity('event', `${group} @ ${placement}`);
+        if (placement) clarity('event', `${group} @ ${placement}`);
       });
     }
 

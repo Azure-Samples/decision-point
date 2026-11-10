@@ -26,19 +26,19 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
     </div>
     {/* The client's game preview in a full player (Media Chrome: the browser's own <video>, with controls we place and
         style). Without JS it keeps the browser's controls; the page script starts it muted (no browser allows sound
-        before a click) and leaves it still under reduced motion. The data-cta names are kept current by the page
-        script, so each click is counted as the action it takes. */}
+        before a click) and leaves it still under reduced motion. Analytics counts play/pause and fullscreen only (one
+        name each, src/lib/cta.ts); skipping and sound aren't tracked. */}
     <figure class="art">
       <media-controller class="player" autohide="2" defaultstreamtype="on-demand">
         <video slot="media" id="hero-video" controls muted loop playsinline preload="metadata" poster={`${base}/video/decision-point-preview-poster.jpg`} aria-label={hero.videoLabel}>
           <source src={`${base}/video/decision-point-preview.mp4`} type="video/mp4" />
         </video>
         <media-control-bar class="bar">
-          <media-play-button id="hero-video-play" data-cta="video-pause"></media-play-button>
-          <media-seek-backward-button seekoffset="10" data-cta="video-seek-back"></media-seek-backward-button>
-          <media-seek-forward-button seekoffset="10" data-cta="video-seek-forward"></media-seek-forward-button>
+          <media-play-button data-cta="video-play-pause"></media-play-button>
+          <media-seek-backward-button seekoffset="10"></media-seek-backward-button>
+          <media-seek-forward-button seekoffset="10"></media-seek-forward-button>
           <div class="vol">
-            <media-mute-button id="hero-video-mute" data-cta="video-sound-on" notooltip></media-mute-button>
+            <media-mute-button notooltip></media-mute-button>
             <media-volume-range></media-volume-range>
           </div>
           <media-time-range></media-time-range>

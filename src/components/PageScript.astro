@@ -293,17 +293,9 @@
      While it's heard the page's ambient loop ducks out, and the header's switch mutes it with everything else. ---------- */
   const vid = document.getElementById('hero-video') as HTMLVideoElement | null;
   if (vid) {
-    const playBtn = document.getElementById('hero-video-play');
-    const muteBtn = document.getElementById('hero-video-mute');
     let held = !motionOK(), onscreen = true, heard = false, ours = false;
     vid.controls = false;
 
-    // Analytics reads data-cta as the click reaches the document, before the video reports the change, so each name is
-    // the action the control will take next
-    const name = () => {
-      if (playBtn) playBtn.dataset.cta = vid.paused ? 'video-play' : 'video-pause';
-      if (muteBtn) muteBtn.dataset.cta = vid.muted ? 'video-sound-on' : 'video-sound-off';
-    };
     const run = () => {
       const want = !held && onscreen && !document.hidden;
       if (want && vid.paused) vid.play().catch(() => {});
@@ -318,14 +310,12 @@
 
     vid.addEventListener('play', () => {
       held = false;
-      name();
       announce();
     });
     vid.addEventListener('pause', () => {
       // A pause we didn't make came from the visitor: hold it
       if (ours) ours = false;
       else held = true;
-      name();
       announce();
     });
     vid.addEventListener('volumechange', () => {
@@ -335,7 +325,6 @@
         held = false;
         run();
       }
-      name();
       announce();
     });
     window.addEventListener('dp:site-muted', () => {
@@ -350,7 +339,6 @@
       held = !motionOK();
       run();
     });
-    name();
     run();
   } else {
     reduce.addEventListener('change', () => { syncMotion(); armReveal(); });
