@@ -6,8 +6,8 @@ import { nav, assets } from '../content/copy';
 
 // No actions in the header (the hero and the sections carry them); the link of the section in view is highlighted
 // (PageScript.astro). The sound switch at the right end mutes the game's sounds; it needs JS, so it shows with it.
-// The logo is the customer's white wordmark used as a mask, so the grey is a token (--logo-ink), not a second file.
-// Recoloured on request: an agreed exception to using official marks as supplied.
+// The logo is the white wordmark used as a mask, so its grey is a token (--logo-ink), not a second file: a deliberate
+// exception to using marks as supplied.
 const logo = await getImage({ src: wordmark, height: 60, format: 'webp', quality: 90 });
 const ratio = wordmark.width / wordmark.height;
 ---
@@ -124,7 +124,7 @@ const ratio = wordmark.width / wordmark.height;
     color: var(--color-ink);
   }
 
-  /* The display face runs wide: the five links fit from about 1060px; below that they give way (they never wrap) */
+  /* The display face runs wide: on narrower screens the links give way (they never wrap) */
   @media (max-width: 66rem) {
     .nav {
       display: none;

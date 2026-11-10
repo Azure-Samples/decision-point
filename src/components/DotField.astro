@@ -1,13 +1,13 @@
 ---
-// The Game edition's ground behind a section: the game's light (any of a slate haze, soft light shafts, a teal floor
-// glow, an Azure spotlight, or a glow along the section's top seam), then a dot grid with each dot at its own opacity
-// (src/lib/field.ts), thinned behind the copy, and a few dots that slowly twinkle. With a mouse and motion allowed, a
-// lens of brighter dots follows the pointer (PageScript.astro).
+// The ground behind a section: the game's light (any of a slate haze, soft light shafts, a teal floor glow, or a glow
+// along the section's top seam), then a dot grid with each dot at its own opacity (src/lib/field.ts), thinned behind
+// the copy, and a few dots that slowly twinkle. With a mouse and motion allowed, a lens of brighter dots follows the
+// pointer (PageScript.astro).
 // Decorative: aria-hidden, pointer-events none, under the content. The host section sets isolation.
 import { FIELD_TILE, twinkles } from '../lib/field';
 import { withBase } from '../lib/inline';
 
-type Light = 'haze' | 'shafts' | 'floor' | 'spot' | 'topglow';
+type Light = 'haze' | 'shafts' | 'floor' | 'topglow';
 
 interface Props {
   /** The light under the dots, back to front */
@@ -132,11 +132,6 @@ const tiles = `--dot-tile: url(${withBase('field/dots.svg')}); --dot-tile-lit: u
     bottom: -3rem;
     height: 16rem;
     background: radial-gradient(40% 55% at 62% 100%, rgb(95 212 200 / 0.26), transparent 70%);
-  }
-
-  .spot {
-    inset: 0;
-    background: radial-gradient(38% 60% at 72% 50%, rgb(30 143 255 / 0.17), transparent 70%);
   }
 
   /* A very soft glow along the seam above the section */

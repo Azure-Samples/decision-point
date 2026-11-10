@@ -34,10 +34,9 @@ npm run dev   # http://localhost:4321
 | Shared text styles | [src/styles/global.css](src/styles/global.css) |
 | A section of the page | [src/components/](src/components/), one component per section, in the order set by [src/pages/index.astro](src/pages/index.astro) |
 | Images (badges, logos) | [src/assets/](src/assets/) |
+| The hero's preview video and its poster | [public/video/](public/video/) |
 | The game's sounds | [public/sounds/](public/sounds/) |
 | Analytics names for buttons | [src/lib/cta.ts](src/lib/cta.ts) |
-
-A link whose value in `links.ts` is still a `{{placeholder}}` never renders as a real link. `PREVIEW_PENDING_LIVE` in [src/lib/inline.ts](src/lib/inline.ts) decides how those links look: while it's `true`, they look like working links and do nothing when selected; set it to `false` to show them as pending.
 
 Players arriving from the game's end screen with `?from=game` land on the build steps (`#build-steps`).
 
@@ -69,7 +68,7 @@ SITE_URL=https://example.com SITE_BASE=/decision-point PUBLIC_INDEX=true npm run
 1. In the repository's **Settings → Pages**, set **Source** to **GitHub Actions**.
 2. Push to `main`. The site is served at `https://<owner>.github.io/<repo>/`.
 
-The workflow reads `SITE_URL` and `SITE_BASE` from the Pages configuration, so it also works with a custom domain. To turn on analytics or indexing, add `PUBLIC_CLARITY_ID` or `PUBLIC_INDEX` as repository variables under **Settings → Secrets and variables → Actions → Variables**.
+The workflow reads `SITE_URL` and `SITE_BASE` from the Pages configuration, so it also works with a custom domain. It builds with this project's Microsoft Clarity ID unless a `PUBLIC_CLARITY_ID` repository variable names another one. To allow indexing, add `PUBLIC_INDEX` with the value `true`. Repository variables are under **Settings → Secrets and variables → Actions → Variables**.
 
 ## Contributing
 

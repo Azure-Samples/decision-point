@@ -1,7 +1,7 @@
 ---
-// The page script (one of the page's few scripts): motion flag, scroll reveal, flip cards, the incident loops' gate,
-// the pending controls' click guard, the dot field's lens, the hero video, the
-// header's section highlight and the game's sounds. (The header's scroll surface lives in SiteHeader.astro's script.)
+// The page script: motion flag, scroll reveal, flip cards, the incident loops' gate, the dot field's lens, the
+// header's section highlight, the game's sounds and the hero video. (The header's scroll surface lives in
+// SiteHeader.astro's script, the volume panel in Hero.astro's, analytics in Analytics.astro's.)
 // Without JS nothing is hidden: the reveal is only armed here, and the flip cards fall back to both faces' text.
 ---
 
@@ -68,13 +68,6 @@
     document.addEventListener('visibilitychange', syncIllos);
     reduce.addEventListener('change', syncIllos);
   }
-
-  /* ---------- Pending controls (preview only; restore inactive styling before launch). Every control whose URL is
-     still a {{placeholder}} renders live (href="#", data-pending), with its full hover, focus and press; clicking it
-     does nothing. ---------- */
-  document.addEventListener('click', (e) => {
-    if ((e.target as Element).closest('a[data-pending]')) e.preventDefault();
-  });
 
   /* ---------- The dot field's lens (DotField.astro): with a mouse and motion allowed, a circle of brighter dots eases
      toward the pointer and fades out when it leaves. Two CSS variables per frame, written only while it moves. ---------- */
@@ -287,7 +280,7 @@
     });
   }
 
-  /* ---------- Hero video: the client's game preview in its player (Hero.astro). It plays muted on a loop (no browser
+  /* ---------- Hero video: the game preview in its player (Hero.astro). It plays muted on a loop (no browser
      allows sound before a click) unless the visitor prefers reduced motion, and only while on screen in a visible tab;
      a pause from the player holds it until they press play. The first time its sound goes on it starts from the top.
      While it's heard the page's ambient loop ducks out, and the header's switch mutes it with everything else. ---------- */

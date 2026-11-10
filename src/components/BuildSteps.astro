@@ -2,13 +2,12 @@
 import Button from './Button.astro';
 import Icon from './Icon.astro';
 import type { IconName } from '../lib/icons';
-import { build, guidance, resources } from '../content/copy';
-import { links, type LinkKey } from '../content/links';
-import { looksLive, titleParts } from '../lib/inline';
+import { build, guidance } from '../content/copy';
+import { links } from '../content/links';
+import { titleParts } from '../lib/inline';
 import { fragment } from '../lib/drawings';
 
-// The step tiles run top to bottom; "Stay inside the $200" sits beside them as an always-open call-out (a deliberate
-// departure from the brief's collapsible guidance).
+// The steps run top to bottom; "Stay inside the $200" sits beside them as an always-open call-out.
 const tipIcons: IconName[] = ['server', 'clock', 'sparkles'];
 const [stepsLine1, stepsLine2] = titleParts(build.stepsTitle);
 const [budgetLead, budgetFigure] = guidance.title.split(' $');
@@ -26,54 +25,45 @@ const stack = fragment();
     <div class="grid">
       <ol class="steps">
         {
-          build.steps.map((s, i) => {
-            const href = links[s.link as LinkKey];
-            return (
-              <li class="step rv">
-                <span class="n" aria-hidden="true">{i + 1}</span>
-                <div class="content">
-                  <h3>{s.title}</h3>
-                  {s.body && <p>{s.body}</p>}
-                  {/* Ghost buttons: a primary fill in every step draws too much attention */}
-                  {looksLive(href) ? (
-                    <Button href={href} variant="ghost" cta={`step-${i + 1}`} icon={s.link === 'repo' ? 'brand-github' : undefined}>{s.button}</Button>
-                  ) : (
-                    <p class="pending-line">
-                      <span class="pend" role="link" aria-disabled="true">
-                        {s.link === 'repo' && <Icon name="brand-github" size={18} />}
-                        {s.button} · {resources.pending.toLowerCase()}
-                        <Icon name="clock" size={14} />
-                      </span>
-                    </p>
-                  )}
-                  {s.helper && <p class="helper">{s.helper}</p>}
-                </div>
-              </li>
-            );
-          })
+          build.steps.map((s, i) => (
+            <li class="step rv">
+              <span class="n" aria-hidden="true">{i + 1}</span>
+              <div class="content">
+                <h3>{s.title}</h3>
+                {s.body && <p>{s.body}</p>}
+                {/* Ghost buttons: a primary fill in every step draws too much attention */}
+                <Button href={links[s.link]} variant="ghost" cta={`step-${i + 1}`} icon={s.link === 'repo' ? 'brand-github' : undefined}>{s.button}</Button>
+                {s.helper && <p class="helper">{s.helper}</p>}
+              </div>
+            </li>
+          ))
         }
       </ol>
 
       <div class="budget-wrap rv">
-      <aside class="budget" aria-labelledby="budget-title">
-        <h3 id="budget-title"><svg class="budget-iso" viewBox={stack.viewBox} aria-hidden="true" focusable="false" set:html={stack.svg} /><span class="bl">{budgetLead}</span> <span class="bn">${budgetFigure}</span></h3>
-        <ul class="tips">
-          {
-            guidance.items.map((t, i) => (
-              <li>
-                <span class="icon-chip" aria-hidden="true"><Icon name={tipIcons[i]} size={20} /></span>
-                <div><strong>{t.lead}</strong> {t.body}</div>
-              </li>
-            ))
-          }
-        </ul>
-      </aside>
+        <aside class="budget" aria-labelledby="budget-title">
+          <h3 id="budget-title"><svg class="budget-iso" viewBox={stack.viewBox} aria-hidden="true" focusable="false" set:html={stack.svg} /><span class="bl">{budgetLead}</span> <span class="bn">${budgetFigure}</span></h3>
+          <ul class="tips">
+            {
+              guidance.items.map((t, i) => (
+                <li>
+                  <span class="icon-chip" aria-hidden="true"><Icon name={tipIcons[i]} size={20} /></span>
+                  <div><strong>{t.lead}</strong> {t.body}</div>
+                </li>
+              ))
+            }
+          </ul>
+        </aside>
       </div>
     </div>
   </div>
 </section>
 
 <style>
+  #build-steps {
+    overflow: clip;
+  }
+
   /* Each line of the title stays whole where it fits */
   #steps-title {
     max-width: none;
@@ -104,7 +94,7 @@ const stack = fragment();
     list-style: none;
   }
 
-  /* The rail is the hero's indexed path: a solid accent segment from each node to the next, ending on the last */
+  /* The rail: a solid segment from each numbered node to the next, ending on the last */
   .step:not(:last-child)::before {
     content: '';
     position: absolute;
@@ -127,7 +117,7 @@ const stack = fragment();
     padding-bottom: 0;
   }
 
-  /* The node recipe shared with the pipelines: a 40px soft-square on the rail */
+  /* The node: a 40px soft-square on the rail */
   .n {
     width: 2.5rem;
     height: 2.5rem;
@@ -161,8 +151,7 @@ const stack = fragment();
     margin-top: 0.6rem;
   }
 
-  .content > :global(.btn),
-  .content > .pending-line {
+  .content > :global(.btn) {
     margin-top: var(--space-5);
   }
 
@@ -176,11 +165,6 @@ const stack = fragment();
     position: sticky;
     top: calc(var(--header-height) + var(--space-12));
   }
-
-  #build-steps {
-    overflow: clip;
-  }
-
 
   .budget {
     position: relative;
@@ -211,15 +195,10 @@ const stack = fragment();
     color: var(--color-body);
   }
 
-  .budget-iso {
-    --budget-iso-line: rgb(80 230 255 / 0.55);
-    --budget-iso-fill: rgb(80 230 255 / 0.07);
-  }
-
   .budget-iso :global(path),
   .budget-iso :global(circle) {
-    fill: var(--budget-iso-fill);
-    stroke: var(--budget-iso-line);
+    fill: rgb(80 230 255 / 0.07);
+    stroke: rgb(80 230 255 / 0.55);
     stroke-width: 1.25;
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
@@ -295,8 +274,6 @@ const stack = fragment();
     color: var(--color-ink);
     font-weight: var(--weight-semibold);
   }
-
-
 
   @media (max-width: 64rem) {
     .grid {

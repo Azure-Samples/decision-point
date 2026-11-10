@@ -1,7 +1,6 @@
 ---
-// Microsoft Clarity behind a consent banner, the one third-party script. Rendered only when PUBLIC_CLARITY_ID is set at
-// build time, or in the Dev preview build (PUBLIC_CONSENT_PREVIEW: the banner alone, nothing loaded); otherwise the page
-// ships none of this.
+// Microsoft Clarity behind a consent banner, the one third-party script. The page renders this component only when
+// PUBLIC_CLARITY_ID is set at build time (index.astro); otherwise it ships none of this.
 // Consent mode v2: the tag loads at once with consent denied (Clarity's no-consent mode: a new ID per page view, no cookies),
 // and only an Accept upgrades it to granted. The choice is kept in localStorage for nine months (Clarity's own validity).
 // A browser sending Global Privacy Control is treated as a decline and never asked. Each CTA click goes out as two Clarity
@@ -9,27 +8,23 @@
 // tagged with the version it saw.
 import { assets, consent } from '../content/copy';
 import { links } from '../content/links';
-import { ANALYTICS_UI, CLARITY_ID } from '../lib/inline';
+import { CLARITY_ID } from '../lib/inline';
 import { version } from '../../package.json';
 ---
 
-{
-  ANALYTICS_UI && (
-    <div class="consent" data-consent data-clarity-id={CLARITY_ID} data-version={`site v${version}`} role="region" aria-labelledby="consent-title" hidden>
-      <div class="copy">
-        <h2 id="consent-title">{consent.title}</h2>
-        <p>
-          {consent.body}{' '}
-          <a class="text-link" href={links.privacy} target="_blank" rel="noopener">{consent.privacy}<span class="sr-only"> {assets.newTab}</span></a>
-        </p>
-      </div>
-      <div class="actions">
-        <button type="button" class="act act-primary" data-consent-accept>{consent.accept}</button>
-        <button type="button" class="act act-ghost" data-consent-decline>{consent.decline}</button>
-      </div>
-    </div>
-  )
-}
+<div class="consent" data-consent data-clarity-id={CLARITY_ID} data-version={`site v${version}`} role="region" aria-labelledby="consent-title" hidden>
+  <div class="copy">
+    <h2 id="consent-title">{consent.title}</h2>
+    <p>
+      {consent.body}{' '}
+      <a class="text-link" href={links.privacy} target="_blank" rel="noopener">{consent.privacy}<span class="sr-only"> {assets.newTab}</span></a>
+    </p>
+  </div>
+  <div class="actions">
+    <button type="button" class="act act-primary" data-consent-accept>{consent.accept}</button>
+    <button type="button" class="act act-ghost" data-consent-decline>{consent.decline}</button>
+  </div>
+</div>
 
 <script>
   import { ctaNames } from '../lib/cta';
@@ -59,7 +54,7 @@ import { version } from '../../package.json';
       }
     };
 
-    // Without a project ID (the Dev preview build) the banner is shown and remembers the choice, and nothing is sent anywhere
+    // A safeguard: without a project ID the banner still works and remembers the choice, and nothing is loaded or sent
     const id = box.dataset.clarityId ?? '';
     let clarity: (...args: unknown[]) => void = () => {};
     const send = (c: Choice) => clarity('consentv2', { ad_Storage: c, analytics_Storage: c });
@@ -72,7 +67,6 @@ import { version } from '../../package.json';
       w.clarity =
         w.clarity ||
         function () {
-          // eslint-disable-next-line prefer-rest-params
           (w.clarity!.q = w.clarity!.q || []).push(arguments);
         };
       // Looked up at call time: the tag replaces window.clarity with the real function once it loads
@@ -87,7 +81,7 @@ import { version } from '../../package.json';
       if (new URLSearchParams(location.search).get('from') === 'game') clarity('set', 'entry', 'game');
       clarity('set', 'version', box.dataset.version ?? 'site');
 
-      // Every CTA click, links still pending included (the click still shows intent): the group, then group @ placement
+      // Every CTA click: the group, then group @ placement
       // (the hero video's names have no placement and go alone)
       document.addEventListener('click', (e) => {
         const id = (e.target as Element).closest<HTMLElement>('[data-cta]')?.dataset.cta;

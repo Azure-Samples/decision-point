@@ -3,20 +3,15 @@
  * Add a name to the glob and to IconName to make it available to <Icon name="…" />.
  */
 const files = import.meta.glob<string>(
-  '/node_modules/@tabler/icons/icons/outline/{player-play,player-pause,chevron-left,chevron-right,arrow-up-right,check,refresh,brand-linkedin,brand-x,brand-github,server,clock,sparkles,terminal-2,book,tools,users,link,volume,volume-3,trophy}.svg',
+  '/node_modules/@tabler/icons/icons/outline/{player-play,arrow-up-right,check,refresh,brand-github,server,clock,sparkles,terminal-2,book,tools,users,volume,volume-3,trophy}.svg',
   { query: '?raw', import: 'default', eager: true },
 );
 
 export type IconName =
   | 'player-play'
-  | 'player-pause'
-  | 'chevron-left'
-  | 'chevron-right'
   | 'arrow-up-right'
   | 'check'
   | 'refresh'
-  | 'brand-linkedin'
-  | 'brand-x'
   | 'brand-github'
   | 'server'
   | 'clock'
@@ -25,7 +20,6 @@ export type IconName =
   | 'book'
   | 'tools'
   | 'users'
-  | 'link'
   | 'volume'
   | 'volume-3'
   | 'trophy';

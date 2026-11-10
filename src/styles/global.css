@@ -128,20 +128,9 @@ code {
     linear-gradient(90deg, transparent 5%, var(--streak) 50%, transparent 95%) top / 100% 1px no-repeat,
     linear-gradient(90deg, transparent 5%, var(--streak-soft) 50%, transparent 95%) bottom / 100% 1px no-repeat,
     var(--color-band);
-  border-block: 0;
 }
 
 /* ---------- One recipe per job ---------- */
-
-/* The card: every framed surface on the page, glass over the ground (the board, the $200 card and the posts share it) */
-.card {
-  background: var(--color-glass);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-glass);
-}
 
 /* The icon chip: the page's one icon treatment (a 40px soft-square, hairline edge, icon in the accent). A category
    chip sets --chip-hue and takes that hue instead. */
@@ -199,19 +188,9 @@ code {
   background-clip: text;
 }
 
-/* The game's name never breaks across lines; on phones it sets the title's size so it fits on one */
-.dp-name {
-  white-space: nowrap;
-}
-
-.title:has(.dp-name) {
-  font-size: min(var(--text-h2), calc((100vw - 3rem) / 9.6));
-}
-
-/* Phones: every heading takes that same size, so they still match */
+/* Phones: every heading takes one size that follows the viewport, so the longest word fits its line */
 @media (max-width: 40rem) {
-  .title,
-  .title.utility {
+  .title {
     font-size: min(var(--text-h2), calc((100vw - 3rem) / 9.6));
   }
 }
@@ -238,34 +217,7 @@ code {
   color: var(--color-muted);
 }
 
-/* One pending language: inline and list links with no target yet read as muted text with a solid, quiet underline and
-   a small clock; buttons keep their weight and a solid edge with the same clock (nothing dashed or dotted). */
-.pend {
-  display: inline;
-  color: var(--color-muted);
-  text-decoration: underline solid;
-  text-decoration-color: var(--pending-underline);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.3em;
-  cursor: not-allowed;
-}
-
-.pend .icon {
-  display: inline-block;
-  margin-inline: 0.15em 0.35em;
-  vertical-align: -0.15em;
-  color: var(--pending-mark);
-}
-
-.pend .icon:last-child {
-  margin-inline: 0.4em 0;
-}
-
-/* Title tiers: the feature tier is .title; Resources takes the utility tier */
-.title.utility {
-  font-size: var(--text-h2-utility);
-}
-
+/* A shorter section (Resources) */
 .section.utility-pad {
   padding-block: var(--space-24);
 }
@@ -374,120 +326,5 @@ html.motion [data-reveal]:not(.rv-in) :is(.rv, .rv-h) {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-}
-
-/*
- * Borderless surfaces. Surfaces separate by colour, not by lines: no seams between sections, no card outlines,
- * Developer Resources as faintly outlined tiles that take their column's hue on hover, and the AMD band as a soft
- * Azure-to-AMD-red field. Selectors are doubled to win over the components' scoped rules without editing them.
- */
-
-/* Sections: the lifted band is colour only, no hairline seams */
-html .band {
-  border-block: 0;
-}
-
-/* Cards: the surface colour is the edge */
-html .card {
-  border-color: transparent;
-}
-
-/* ---------- Developer Resources: three groups, no dividers ---------- */
-
-html #resources .col + .col {
-  border: 0;
-}
-
-/* Tiles: empty, with a very faint outline; on hover a faint wash of the column's hue from the top left
-   (Learn blue, Build amber, Community violet: the column chips' --chip-hue) */
-html #resources .tile {
-  background: transparent;
-  border: 1px solid rgb(246 247 249 / 0.08);
-  transition:
-    background-color var(--dur-state) var(--ease-state),
-    border-color var(--dur-state) var(--ease-state),
-    translate var(--dur-state) var(--ease-out);
-}
-
-html #resources a.tile:is(:hover, :focus-visible) {
-  background: radial-gradient(130% 140% at 0% 0%, color-mix(in srgb, var(--chip-hue) 16%, transparent), transparent 62%);
-  border-color: color-mix(in srgb, var(--chip-hue) 28%, transparent);
-}
-
-html #resources a.tile:is(:hover, :focus-visible) .t {
-  text-decoration-color: var(--chip-hue);
-}
-
-/* ---------- Real hardware: Azure on the left, AMD red on the right, no rules ---------- */
-
-html section.amd.amd {
-  position: relative;
-  isolation: isolate;
-  border: 0;
-  background: none;
-}
-
-/* The field fades in and out at the top and bottom, so the band has no hard edge either */
-html section.amd.amd::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(60% 85% at 0% 45%, rgb(15 108 189 / 0.26), transparent 70%),
-    radial-gradient(60% 85% at 100% 45%, rgb(237 28 36 / 0.2), transparent 70%),
-    linear-gradient(90deg, rgb(15 108 189 / 0.08), rgb(110 60 150 / 0.06) 50%, rgb(237 28 36 / 0.07));
-  -webkit-mask: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
-  mask: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
-  pointer-events: none;
-}
-
-/* ---------- Radii and surface tones ---------- */
-
-/* Softer corners on controls and cards */
-:root:root {
-  --radius-sm: 10px;
-  --radius-md: 14px;
-
-  /* Surface steps big enough to see: steps a few code values above black get crushed to one black on many screens
-     (HDR on Windows maps SDR near-black flat). Ground → band → card → raised card. */
-  --color-band: #111823;
-  --color-surface: #19212e;
-  --color-surface-2: #212b3a;
-}
-
-/* ---------- Badges: every badge in the same plain container, no glow ---------- */
-
-html #badges .badge .art-box {
-  display: grid;
-  place-items: center;
-  width: 6rem;
-  height: 6rem;
-  margin-top: -0.5rem;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  border: 0;
-  box-shadow: none;
-  transform: none;
-  transition: none;
-}
-
-html #badges .badge .art-box .art {
-  width: 4.25rem;
-  height: 4.25rem;
-  margin: 0;
-  filter: none;
-}
-
-@media (max-width: 40rem) {
-  html #badges .badge .art-box {
-    width: 4.75rem;
-    height: 4.75rem;
-  }
-
-  html #badges .badge .art-box .art {
-    width: 3.25rem;
-    height: 3.25rem;
   }
 }

@@ -1,14 +1,8 @@
 /**
  * Every word on the page, in one place. Components never hold copy.
  *
- * Source: the client brief's landing page copy, as rewritten in the "Updated" copy pass and then edited by the
- * customer's review (2026-10-27).
- *
  * `[[…]]` marks the payoff of a two-part heading (titleParts() in src/lib/inline.ts): the part before it is set in white
- * and the payoff in the titles' blue. Only the tone split is ours.
- *
- * The game is called Decision Point: every "Postgres Protocol" in the brief reads "Decision Point" here, and the
- * hashtag is #DecisionPoint.
+ * and the payoff in the titles' blue.
  */
 
 export const meta = {
@@ -19,8 +13,7 @@ export const meta = {
 
 export const nav = {
   brand: 'Decision Point',
-  // Each label is its section's title in short form, in page order (shortened to fit). The customer cut Badges
-  // from the nav (2026-11-04); the section stays.
+  // Each label is its section's title in short form, in page order. Badges has a section but no nav link.
   links: [
     { label: 'How it works', href: '#how' },
     { label: 'Build', href: '#build-steps' },
@@ -37,22 +30,21 @@ export const hero = {
     "You're the lead engineer as Basket IQ races to launch. Make real architecture calls, watch your Launch Readiness score move, then take your build to Azure HorizonDB.",
   primary: 'Play Decision Point',
   // The hero's secondary button
-  build: '▶ Build the agent',
-  // The brief's ribbon as facts, under both the copy and the video; the game's length leads (customer, 2026-11-04)
+  build: 'Build the agent',
+  // The facts strip at the foot of the hero
   facts: ['10–15 minute browser game', 'No install', 'No sign-up', 'Runs in Chrome, Edge, Safari and Firefox'],
-  // The client's preview video (2026-11-04). Its player's controls carry Media Chrome's own labels.
+  // The preview video's accessible name. Its player's controls carry Media Chrome's own labels.
   videoLabel:
     'Game preview: Basket IQ recommends the wrong item, the player picks a fix, and the Launch Readiness score climbs.',
 } as const;
 
 export const how = {
   title: 'Every decision [[counts]]',
-  // The brief's body, its sentences each placed where they do their job
   lead: "Decision Point puts you in charge of launching Basket IQ, Contoso's new AI shopping agent.",
   leadKey: 'Basket IQ',
   cardsIn: 'Fix three engineering incidents before the app ships.',
   cardsInKey: 'three engineering incidents',
-  // The stepper: a title over a body per step, rewriting the brief's last sentence
+  // The stepper: a title over a body per step
   steps: [
     { title: 'Three meters', body: 'Your calls impact search relevance, reliability and responsiveness.' },
     { title: 'One score', body: 'The meters roll up into your Launch Readiness score.' },
@@ -74,36 +66,25 @@ export const how = {
       learn: 'DiskANN SQ, Advanced Filtering push-down, read scale-out',
     },
   ],
-  // The leaderboard lives in the game: this opens the game's entry page (customer, 2026-10-27)
+  // The leaderboard lives in the game: this opens the game
   cta: 'View the leaderboard',
 } as const;
 
 export const badges = {
   title: 'Six badges. [[Six ways to play.]]',
-  items: [
-    { name: 'Precision Pathfinder' },
-    { name: 'Grounding Guardian' },
-    { name: 'AMD Transaction Titan' },
-    { name: 'Decisive Diplomat' },
-    { name: 'Go-live General' },
-    { name: 'SQL Savant' },
-  ],
   intro: 'Badges reward how you play, not just your score.',
-  titan: 'Maxing out the Responsiveness meter.',
-  // How to earn each badge, in badge order (the customer's wording, 2026-10-27); the Transaction Titan's line is
-  // `titan`, above.
-  earn: [
-    'Prioritizing accurate, relevant search results.',
-    'Keeping the agent grounded in fresh data.',
-    null,
-    'Balancing all three meters without letting one slip.',
-    'Making it to the top of the leaderboard.',
-    'Completing the mission on Hard Mode.',
+  // Each badge and how to earn it. A badge's art is src/assets/badges/<its name in lower case, hyphenated>.png
+  items: [
+    { name: 'Precision Pathfinder', earn: 'Prioritizing accurate, relevant search results.' },
+    { name: 'Grounding Guardian', earn: 'Keeping the agent grounded in fresh data.' },
+    { name: 'AMD Transaction Titan', earn: 'Maxing out the Responsiveness meter.' },
+    { name: 'Decisive Diplomat', earn: 'Balancing all three meters without letting one slip.' },
+    { name: 'Go-live General', earn: 'Making it to the top of the leaderboard.' },
+    { name: 'SQL Savant', earn: 'Completing the mission on Hard Mode.' },
   ],
 } as const;
 
 export const build = {
-  // The Build panel's headline, moved onto the steps (customer, 2026-10-27: the panel itself is cut)
   stepsTitle: 'You shipped it in the sim. [[Now ship it for real.]]',
   stepsIntro:
     'The same shape as Basket IQ: hybrid search, an AI pipeline that keeps data fresh, and a working agent on your own Azure account. New Azure customers can sign up for an Azure free account with up to $200 credit for 30 days plus free monthly amounts on 60+ services.',
@@ -149,7 +130,6 @@ export const guidance = {
 
 export const resources = {
   title: 'Developer [[Resources]]',
-  pending: 'Link coming soon',
   columns: [
     {
       heading: 'Learn',
@@ -172,7 +152,7 @@ export const resources = {
       items: [
         { label: 'PostgreSQL Hub', link: 'postgresHub' },
         { label: 'Azure PostgreSQL Tech Community', link: 'techCommunity' },
-        // The tail never breaks, so a wrapped label reads "GitHub Discussions" / "on postgres-hub" (customer, 2026-11-06)
+        // The tail never breaks, so a wrapped label reads "GitHub Discussions" / "on postgres-hub"
         { label: 'GitHub Discussions', tail: 'on postgres-hub', link: 'discussions' },
       ],
     },
@@ -200,8 +180,8 @@ export const footer = {
   ],
   // Shown only when analytics is on (reopens the consent banner)
   cookies: 'Cookie settings',
-  // Small legal text is TBD in the brief: hidden until supplied
-  legal: '{{legal}}',
+  // Small legal text under the footer links: not rendered while empty
+  legal: '',
 } as const;
 
 export const assets = {
@@ -210,7 +190,7 @@ export const assets = {
   navLabel: 'Main',
 } as const;
 
-/** The analytics consent banner (approved wording; it never names the analytics product). Rendered when PUBLIC_CLARITY_ID is set, or in the Dev preview build. */
+/** The analytics consent banner (it never names the analytics product). Rendered when PUBLIC_CLARITY_ID is set. */
 export const consent = {
   title: 'Analytics cookies',
   body: 'This site uses optional analytics cookies to understand how visitors use the page. If you decline, only cookie-free measurement is used. You can change your selection at any time under Cookie settings.',

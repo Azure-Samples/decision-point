@@ -4,16 +4,13 @@ import Button from './Button.astro';
 import Icon from './Icon.astro';
 import { how } from '../content/copy';
 import { links } from '../content/links';
-import { emphasise, titleParts } from '../lib/inline';
+import { emphasise, escapeHtml, titleParts } from '../lib/inline';
 import { STAGE, sceneHybrid, sceneGhost, sceneSurge } from '../lib/drawings';
 
 // Code in the lessons (azure_ai.rank(), ai.create_pipeline(), on_change) is set in mono; the prose around it isn't.
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const withCode = (s: string) => esc(s).replace(/([a-z_]+(?:\.[a-z_]+)*\(\)|\bon_change\b)/g, '<code>$1</code>');
+const withCode = (s: string) => escapeHtml(s).replace(/([a-z_]+(?:\.[a-z_]+)*\(\)|\bon_change\b)/g, '<code>$1</code>');
 
 const [setup, payoff] = titleParts(how.title);
-
-const steps = how.steps;
 
 // The incident drawings, each with one continuous movement: packets travel the indexed path into a ranked answer; a
 // change event clears a ghost from the index; the bars surge and settle under p95.
@@ -35,7 +32,7 @@ const viewBox = `0 0 ${STAGE.w} ${STAGE.h}`;
 
     <ol class="stepper rv">
       {
-        steps.map((st, i) => (
+        how.steps.map((st, i) => (
           <li class="step">
             <span class="mk" aria-hidden="true">{i + 1}</span>
             <div class="st">
@@ -441,9 +438,7 @@ const viewBox = `0 0 ${STAGE.w} ${STAGE.h}`;
       max-width: none;
       padding-top: 0.45rem;
     }
-  }
 
-  @media (max-width: 40rem) {
     .cards-in {
       margin-top: var(--space-12);
       text-align: left;

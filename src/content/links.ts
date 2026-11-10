@@ -1,31 +1,22 @@
-/**
- * Every outbound URL. `{{…}}` means we don't have it yet;
- * isResolved() keeps those from ever rendering as links.
- *
- * SELF-SOURCED: a public page we found ourselves (2026-10-28), not supplied by the customer. Each is to confirm with
- * them; to revert one, put its `{{…}}` placeholder back (shown in its comment). `grep SELF-SOURCED` lists them all.
- */
+/** Every outbound URL on the page. */
 export const links = {
-  game: 'https://aka.ms/decision-point/play', // the game's public short link
-  azureFree: 'https://azure.microsoft.com/free',
-  repo: 'https://aka.ms/decision-point/build-repo', // the customer's short link (2026-11-04)
+  game: 'https://aka.ms/decision-point/play',
+  azureFree: 'https://azure.microsoft.com/free', // the Build steps' "Start Azure free" button
+  repo: 'https://aka.ms/decision-point/build-repo',
   horizonDbDocs: 'https://learn.microsoft.com/en-us/azure/horizondb/',
-  aiCapabilities: 'https://learn.microsoft.com/en-us/azure/horizondb/ai/ai-overview', // SELF-SOURCED, was {{ai_capabilities_url}}
-  // SELF-SOURCED, was {{learning_path_url}}. The AI path; the general one is /training/paths/microsoft-learn-azure-database-for-postgresql/
+  aiCapabilities: 'https://learn.microsoft.com/en-us/azure/horizondb/ai/ai-overview',
+  // The AI learning path; the general one is /training/paths/microsoft-learn-azure-database-for-postgresql/
   learningPath: 'https://learn.microsoft.com/en-us/training/paths/develop-ai-solutions-azure-database-postgresql/',
-  // The two the customer supplied in their review (2026-10-27)
   vscodeExtension: 'https://marketplace.visualstudio.com/items?itemName=ms-ossdata.vscode-pgsql',
+  // The Resources tile: the free-account sign-up, attributed to the HorizonDB product page
   azureFreeAccount:
     'https://go.microsoft.com/fwlink/?linkid=2227353&clcid=0x409&l=en-us&ref=azure.microsoft.com&hasfullconsent=true&icid=products_horizondb',
-  // In the brief; still to confirm
   postgresHub: 'https://azure-samples.github.io/postgres-hub/',
-  techCommunity: 'https://techcommunity.microsoft.com/category/azuredatabases/blog/adforpostgresql', // SELF-SOURCED, was {{tech_community_url}}
-  discussions: 'https://github.com/Azure-Samples/postgres-hub/discussions', // SELF-SOURCED, was {{discussions_url}}
+  techCommunity: 'https://techcommunity.microsoft.com/category/azuredatabases/blog/adforpostgresql',
+  discussions: 'https://github.com/Azure-Samples/postgres-hub/discussions',
   azurePostgresDocs: 'https://learn.microsoft.com/en-us/azure/postgresql/',
-  contribute: 'https://github.com/Azure-Samples/postgres-hub/blob/main/Contributing.md', // SELF-SOURCED, was {{contribute_url}}
-  // Microsoft's standard privacy statement and trademarks pages, as on the sister site (PostgreSQL Like a Pro)
+  contribute: 'https://github.com/Azure-Samples/postgres-hub/blob/main/Contributing.md',
+  // Microsoft's standard privacy statement and trademarks pages
   privacy: 'https://go.microsoft.com/fwlink/?LinkId=521839',
   trademarks: 'https://www.microsoft.com/legal/intellectualproperty/trademarks',
 } as const;
-
-export type LinkKey = keyof typeof links;
